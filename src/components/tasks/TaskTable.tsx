@@ -78,6 +78,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Nº</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead>Prazo</TableHead>
               <TableHead>Título</TableHead>
@@ -89,6 +90,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
           <TableBody>
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
+                <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
@@ -119,6 +121,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Nº</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead>Prazo</TableHead>
               <TableHead className="w-[250px]">Título</TableHead>
@@ -134,6 +137,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => navigate(`/tasks/${task.id}`)}
               >
+                <TableCell>
+                  <span className="font-mono text-sm font-medium text-muted-foreground">
+                    #{task.task_number}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <PriorityBadge priority={task.priority} />
                 </TableCell>
