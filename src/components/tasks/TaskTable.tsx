@@ -81,6 +81,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
               <TableHead className="w-[80px]">Nº</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead>Prazo</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Título</TableHead>
               <TableHead>Setor</TableHead>
               <TableHead>Responsável</TableHead>
@@ -93,6 +94,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                 <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -124,6 +126,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
               <TableHead className="w-[80px]">Nº</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead>Prazo</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="w-[250px]">Título</TableHead>
               <TableHead>Setor</TableHead>
               <TableHead>Responsável</TableHead>
@@ -155,6 +158,25 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                     {isOverdue(task) && <OverdueBadge />}
                   </div>
                 </TableCell>
+                <TableCell>
+                  {task.status === 'open' ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300">
+                      Aberto
+                    </span>
+                  ) : task.status === 'in_progress' ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
+                      Executando
+                    </span>
+                  ) : task.status === 'done' ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
+                      Concluída
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">
+                      Cancelada
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">{task.title}</TableCell>
                 <TableCell>
                   {task.sector && (
@@ -167,7 +189,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.status === 'open' ? (
+                  {task.status === 'open' && (
                     <Button
                       size="sm"
                       className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -176,11 +198,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                       <Play className="h-4 w-4 mr-1" />
                       Executar
                     </Button>
-                  ) : task.status === 'in_progress' ? (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
-                      Executando
-                    </span>
-                  ) : null}
+                  )}
                 </TableCell>
               </TableRow>
             ))}
