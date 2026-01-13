@@ -276,6 +276,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                     onSelect={setExecuteDueDate}
                     disabled={(date) => date < new Date()}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
