@@ -46,6 +46,8 @@ import { useTask, useCreateTask, useUpdateTask } from '@/hooks/useTasks';
 import { TaskStatus, TaskPriority, PRIORITY_OPTIONS, STATUS_OPTIONS } from '@/types/database';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { TaskAttachments } from '@/components/tasks/TaskAttachments';
+import { CompletionAttachments } from '@/components/tasks/CompletionAttachments';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -427,6 +429,26 @@ export default function TaskForm() {
                     <p className="text-sm text-green-700 dark:text-green-400">{task.completion_notes}</p>
                   </div>
                 )}
+
+                {/* Fotos da Tarefa */}
+                {isEditing && id && (
+                  <div className="mt-6 space-y-4">
+                    <TaskAttachments 
+                      taskId={id} 
+                      attachmentType="general"
+                      title="Fotos da Tarefa"
+                    />
+                    
+                    {task?.status === 'done' && (
+                      <TaskAttachments 
+                        taskId={id} 
+                        attachmentType="completion"
+                        readOnly
+                        title="Fotos da Conclusão"
+                      />
+                    )}
+                  </div>
+                )}
               </form>
             </Form>
           </CardContent>
@@ -521,17 +543,24 @@ export default function TaskForm() {
             <DialogHeader>
               <DialogTitle>Concluir Tarefa</DialogTitle>
               <DialogDescription>
-                Adicione observações sobre a conclusão desta tarefa.
+                Adicione observações e fotos sobre a conclusão desta tarefa.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <Textarea
-                placeholder="Digite suas observações sobre a conclusão..."
-                value={completionNotes}
-                onChange={(e) => setCompletionNotes(e.target.value)}
-                rows={4}
-                className="resize-none"
-              />
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Observações</label>
+                <Textarea
+                  placeholder="Digite suas observações sobre a conclusão..."
+                  value={completionNotes}
+                  onChange={(e) => setCompletionNotes(e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+              
+              {id && (
+                <CompletionAttachments taskId={id} />
+              )}
             </div>
             <DialogFooter>
               <Button
