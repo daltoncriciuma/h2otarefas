@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -24,10 +24,16 @@ const signupSchema = loginSchema.extend({
   path: ['confirmPassword'],
 });
 
+const resetSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn, signUp } = useAuth();
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const { signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -40,9 +46,15 @@ export default function Auth() {
     defaultValues: { email: '', password: '', fullName: '', confirmPassword: '' },
   });
 
+  const resetForm = useForm<z.infer<typeof resetSchema>>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: { email: '' },
+  });
+
   const handleLogin = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
     const { error } = await signIn(values.email, values.password);
     if (error) {
       setError(error.message === 'Invalid login credentials' ? 'Credenciais inválidas' : error.message);
@@ -55,6 +67,7 @@ export default function Auth() {
   const handleSignup = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
     const { error } = await signUp(values.email, values.password, values.fullName);
     if (error) {
       setError(error.message.includes('already registered') ? 'Email já cadastrado' : error.message);
@@ -63,6 +76,72 @@ export default function Auth() {
     }
     setIsLoading(false);
   };
+
+  const handleResetPassword = async (values: z.infer<typeof resetSchema>) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    const { error } = await resetPassword(values.email);
+    if (error) {
+      setError('Erro ao enviar email de recuperação. Tente novamente.');
+    } else {
+      setSuccess('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      resetForm.reset();
+    }
+    setIsLoading(false);
+  };
+
+  if (showResetPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-primary">Recuperar Senha</CardTitle>
+            <CardDescription>Digite seu email para receber o link de recuperação</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 text-destructive text-sm rounded-lg">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 bg-green-500/10 text-green-600 text-sm rounded-lg">
+                {success}
+              </div>
+            )}
+            <Form {...resetForm}>
+              <form onSubmit={resetForm.handleSubmit(handleResetPassword)} className="space-y-4">
+                <FormField control={resetForm.control} name="email" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl><Input type="email" placeholder="seu@email.com" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar Link de Recuperação
+                </Button>
+              </form>
+            </Form>
+            <Button
+              variant="ghost"
+              className="w-full mt-4"
+              onClick={() => {
+                setShowResetPassword(false);
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -101,6 +180,19 @@ export default function Auth() {
                       <FormMessage />
                     </FormItem>
                   )} />
+                  <div className="text-right">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto text-sm text-muted-foreground hover:text-primary"
+                      onClick={() => {
+                        setShowResetPassword(true);
+                        setError(null);
+                      }}
+                    >
+                      Esqueceu a senha?
+                    </Button>
+                  </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar
