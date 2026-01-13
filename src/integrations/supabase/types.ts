@@ -127,6 +127,8 @@ export type Database = {
         Row: {
           assignee_id: string | null
           completed_at: string | null
+          completed_by: string | null
+          completion_notes: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -142,6 +144,8 @@ export type Database = {
         Insert: {
           assignee_id?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -157,6 +161,8 @@ export type Database = {
         Update: {
           assignee_id?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -173,6 +179,13 @@ export type Database = {
           {
             foreignKeyName: "tasks_assignee_id_fkey"
             columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_completed_by_fkey"
+            columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

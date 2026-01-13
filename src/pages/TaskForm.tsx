@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, CalendarIcon, Play } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Play, CheckCircle } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { useTask, useCreateTask, useUpdateTask } from '@/hooks/useTasks';
 import { TaskStatus, TaskPriority, PRIORITY_OPTIONS, STATUS_OPTIONS } from '@/types/database';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -61,10 +62,13 @@ type TaskFormValues = z.infer<typeof taskSchema>;
 export default function TaskForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEditing = !!id;
 
   const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
   const [executeDueDate, setExecuteDueDate] = useState<Date | undefined>(undefined);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState('');
 
   const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
@@ -142,9 +146,28 @@ export default function TaskForm() {
     }
   };
 
+  const handleCompleteTask = async () => {
+    if (!id || !user) return;
+    
+    try {
+      await updateTask.mutateAsync({
+        id,
+        status: 'done',
+        completed_by: user.id,
+        completion_notes: completionNotes.trim() || null,
+      });
+      setCompleteDialogOpen(false);
+      setCompletionNotes('');
+      navigate('/tasks');
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
   const isLoading = sectorsLoading || profilesLoading || (isEditing && taskLoading);
   const isPending = createTask.isPending || updateTask.isPending;
   const canExecute = isEditing && task?.status === 'open';
+  const canComplete = isEditing && task?.status === 'in_progress';
 
   return (
     <AppLayout>
@@ -365,6 +388,16 @@ export default function TaskForm() {
                       Executar
                     </Button>
                   )}
+                  {canComplete && (
+                    <Button
+                      type="button"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => setCompleteDialogOpen(true)}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Concluir
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
@@ -376,6 +409,14 @@ export default function TaskForm() {
                     {isPending ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar Tarefa'}
                   </Button>
                 </div>
+
+                {/* Observações de Conclusão - exibidas quando a tarefa foi concluída */}
+                {isEditing && task?.status === 'done' && task?.completion_notes && (
+                  <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">Observações da Conclusão</h4>
+                    <p className="text-sm text-green-700 dark:text-green-400">{task.completion_notes}</p>
+                  </div>
+                )}
               </form>
             </Form>
           </CardContent>
@@ -434,6 +475,47 @@ export default function TaskForm() {
                 disabled={!executeDueDate || updateTask.isPending}
               >
                 {updateTask.isPending ? 'Salvando...' : 'Confirmar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para Concluir Tarefa */}
+        <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Concluir Tarefa</DialogTitle>
+              <DialogDescription>
+                Adicione observações sobre a conclusão desta tarefa.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Textarea
+                placeholder="Digite suas observações sobre a conclusão..."
+                value={completionNotes}
+                onChange={(e) => setCompletionNotes(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setCompleteDialogOpen(false);
+                  setCompletionNotes('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleCompleteTask}
+                disabled={updateTask.isPending}
+              >
+                {updateTask.isPending ? 'Salvando...' : 'Confirmar Conclusão'}
               </Button>
             </DialogFooter>
           </DialogContent>
