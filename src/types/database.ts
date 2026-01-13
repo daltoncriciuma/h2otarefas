@@ -26,6 +26,7 @@ export interface Task {
   id: string;
   title: string;
   description: string | null;
+  possible_solution: string | null;
   sector_id: string;
   assignee_id: string | null;
   status: TaskStatus;

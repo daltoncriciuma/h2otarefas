@@ -32,6 +32,7 @@ import { TaskStatus, TaskPriority } from '@/types/database';
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
+  possible_solution: z.string().optional(),
   sector_id: z.string().min(1, 'Setor é obrigatório'),
   assignee_id: z.string().optional(),
   status: z.enum(['in_progress', 'blocked', 'done']),
@@ -64,6 +65,7 @@ export default function TaskForm() {
     defaultValues: {
       title: '',
       description: '',
+      possible_solution: '',
       sector_id: '',
       assignee_id: '',
       status: 'in_progress',
@@ -81,6 +83,7 @@ export default function TaskForm() {
       form.reset({
         title: task.title,
         description: task.description || '',
+        possible_solution: (task as any).possible_solution || '',
         sector_id: task.sector_id,
         assignee_id: task.assignee_id || '',
         status: mappedStatus,
@@ -94,6 +97,7 @@ export default function TaskForm() {
       const payload = {
         title: data.title,
         description: data.description || undefined,
+        possible_solution: data.possible_solution || undefined,
         sector_id: data.sector_id,
         assignee_id: data.assignee_id === 'none' ? undefined : data.assignee_id || undefined,
         status: data.status,
@@ -153,24 +157,45 @@ export default function TaskForm() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descreva a tarefa..."
-                          className="resize-none"
-                          rows={4}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Descreva a tarefa..."
+                            className="resize-none"
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="possible_solution"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Possível Solução</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Sugira uma possível solução..."
+                            className="resize-none"
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField

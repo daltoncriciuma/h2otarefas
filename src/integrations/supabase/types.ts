@@ -143,6 +143,7 @@ export type Database = {
           description: string | null
           due_at: string | null
           id: string
+          possible_solution: string | null
           priority: Database["public"]["Enums"]["task_priority"]
           sector_id: string
           status: Database["public"]["Enums"]["task_status"]
@@ -157,6 +158,7 @@ export type Database = {
           description?: string | null
           due_at?: string | null
           id?: string
+          possible_solution?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           sector_id: string
           status?: Database["public"]["Enums"]["task_status"]
@@ -171,6 +173,7 @@ export type Database = {
           description?: string | null
           due_at?: string | null
           id?: string
+          possible_solution?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           sector_id?: string
           status?: Database["public"]["Enums"]["task_status"]
