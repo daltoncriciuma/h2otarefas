@@ -42,6 +42,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
       <Route path="/tasks/new" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
+      <Route path="/tasks/:id" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
       <Route path="/tasks/:id/edit" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
       <Route path="/sectors" element={<ProtectedRoute><Sectors /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
