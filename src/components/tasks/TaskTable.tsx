@@ -78,25 +78,23 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Prioridade</TableHead>
+              <TableHead>Prazo</TableHead>
               <TableHead>Título</TableHead>
               <TableHead>Setor</TableHead>
               <TableHead>Responsável</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Prioridade</TableHead>
-              <TableHead>Prazo</TableHead>
-              <TableHead>Criado por</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
+                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-8 w-24" /></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -121,14 +119,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Prioridade</TableHead>
+              <TableHead>Prazo</TableHead>
               <TableHead className="w-[250px]">Título</TableHead>
               <TableHead>Setor</TableHead>
               <TableHead>Responsável</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Prioridade</TableHead>
-              <TableHead>Prazo</TableHead>
-              <TableHead>Criado por</TableHead>
-              <TableHead></TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -139,6 +134,19 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => navigate(`/tasks/${task.id}`)}
               >
+                <TableCell>
+                  <PriorityBadge priority={task.priority} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {task.due_at && (
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(task.due_at), "dd 'de' MMM, yyyy", { locale: ptBR })}
+                      </span>
+                    )}
+                    {isOverdue(task) && <OverdueBadge />}
+                  </div>
+                </TableCell>
                 <TableCell className="font-medium">{task.title}</TableCell>
                 <TableCell>
                   {task.sector && (
@@ -149,27 +157,6 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                   <span className="text-sm text-muted-foreground">
                     {task.assignee?.full_name || '-'}
                   </span>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={task.status} />
-                </TableCell>
-                <TableCell>
-                  <PriorityBadge priority={task.priority} />
-                </TableCell>
-                <TableCell>
-                  {task.due_at && (
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(task.due_at), "dd 'de' MMM, yyyy", { locale: ptBR })}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {task.creator?.full_name || '-'}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {isOverdue(task) && <OverdueBadge />}
                 </TableCell>
                 <TableCell>
                   {task.status === 'open' && (
