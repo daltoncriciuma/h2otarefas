@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useSectors } from '@/hooks/useSectors';
 import { useProfiles } from '@/hooks/useProfiles';
-import { STATUS_LABELS, PRIORITY_LABELS, TaskStatus, TaskPriority } from '@/types/database';
+import { STATUS_LABELS, PRIORITY_OPTIONS, TaskStatus, TaskPriority } from '@/types/database';
 
 interface TaskFiltersProps {
   filters: {
@@ -110,9 +110,9 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as prioridades</SelectItem>
-            {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
+            {PRIORITY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
