@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { getSafeAuthErrorMessage } from '@/lib/errorUtils';
+import logoH2o from '@/assets/logo-h2o.webp';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -148,7 +149,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">TaskFlow</CardTitle>
+          <img src={logoH2o} alt="H2O Laboratório" className="h-16 mx-auto mb-2" />
           <CardDescription>Sistema de Gestão de Tarefas</CardDescription>
         </CardHeader>
         <CardContent>
