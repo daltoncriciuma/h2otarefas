@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect, useCallback } from 'react';
+import logoH2o from '@/assets/logo-h2o.webp';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -25,18 +26,15 @@ function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; 
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-sidebar to-sidebar/95 text-sidebar-foreground">
-      <div className="p-6">
-        <h1 className={cn(
-          "font-bold text-sidebar-primary-foreground transition-all tracking-tight",
-          collapsed ? "text-lg text-center" : "text-2xl"
-        )}>
-          {collapsed ? "H₂" : "H₂O"}
-        </h1>
-        {!collapsed && (
-          <p className="text-sm text-sidebar-foreground/70 mt-1 font-medium">
-            Gestão de Tarefas
-          </p>
-        )}
+      <div className={cn("p-6 flex items-center", collapsed ? "justify-center" : "")}>
+        <img 
+          src={logoH2o} 
+          alt="H2O Laboratório" 
+          className={cn(
+            "transition-all duration-300 brightness-0 invert",
+            collapsed ? "h-10 w-10 object-contain" : "h-12"
+          )}
+        />
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
