@@ -82,13 +82,6 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Bloqueadas</CardTitle>
-              <AlertOctagon className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent><div className="text-2xl font-bold text-destructive">{blocked}</div></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-success" />
             </CardHeader>
@@ -100,6 +93,13 @@ export default function Dashboard() {
               <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent><div className="text-2xl font-bold text-destructive">{overdue}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Bloqueadas</CardTitle>
+              <AlertOctagon className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent><div className="text-2xl font-bold text-destructive">{blocked}</div></CardContent>
           </Card>
         </div>
 
