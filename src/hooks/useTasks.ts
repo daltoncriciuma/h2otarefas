@@ -93,6 +93,7 @@ export function useTask(id: string) {
 interface CreateTaskInput {
   title: string;
   description?: string;
+  possible_solution?: string;
   sector_id: string;
   assignee_id?: string;
   status?: TaskStatus;
@@ -144,6 +145,7 @@ interface UpdateTaskInput {
   id: string;
   title?: string;
   description?: string;
+  possible_solution?: string;
   sector_id?: string;
   assignee_id?: string | null;
   status?: TaskStatus;
