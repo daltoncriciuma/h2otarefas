@@ -28,13 +28,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { useProfiles } from '@/hooks/useProfiles';
-import { useSectors } from '@/hooks/useSectors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Shield, Building2, Trash2 } from 'lucide-react';
+import { Users, Shield, Trash2 } from 'lucide-react';
 
 type AppRole = 'admin' | 'manager' | 'member';
 
@@ -55,15 +53,13 @@ const SUPER_ADMIN_EMAIL = 'daltoncriciuma@gmail.com';
 
 export default function Settings() {
   const { isAdmin, isLoading: authLoading, user } = useAuth();
-  const { data: profiles, isLoading: profilesLoading } = useProfiles();
-  const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
-  // Fetch user roles with emails
-  const { data: usersWithRoles, isLoading: rolesLoading } = useQuery({
+  // Fetch user roles
+  const { data: usersWithRoles, isLoading: usersLoading } = useQuery({
     queryKey: ['users-with-roles'],
     queryFn: async () => {
       // Get profiles
@@ -87,32 +83,6 @@ export default function Settings() {
     enabled: !authLoading && isAdmin,
   });
 
-  // Update sector mutation
-  const updateSector = useMutation({
-    mutationFn: async ({ userId, sectorId }: { userId: string; sectorId: string | null }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ sector_id: sectorId })
-        .eq('id', userId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast({
-        title: 'Setor atualizado',
-        description: 'O setor do usuário foi atualizado com sucesso.',
-      });
-    },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Não foi possível atualizar o setor.',
-      });
-    },
-  });
-
   // Update role mutation
   const updateRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
@@ -124,7 +94,6 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       toast({
         title: 'Papel atualizado',
         description: 'O papel do usuário foi atualizado com sucesso.',
@@ -151,7 +120,6 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: 'Usuário excluído',
         description: 'A conta do usuário foi excluída permanentemente.',
@@ -166,12 +134,7 @@ export default function Settings() {
     },
   });
 
-  const getUserSector = (sectorId: string | null) => {
-    if (!sectorId) return null;
-    return sectors?.find(s => s.id === sectorId);
-  };
-
-  const isLoading = authLoading || profilesLoading || sectorsLoading || rolesLoading;
+  const isLoading = authLoading || usersLoading;
 
   if (authLoading) {
     return (
@@ -203,7 +166,7 @@ export default function Settings() {
           <p className="text-muted-foreground">Gerencie usuários e permissões do sistema</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -224,22 +187,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Setores</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{sectors?.length || 0}</div>
-            </CardContent>
-          </Card>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Gerenciar Usuários</CardTitle>
             <CardDescription>
-              Atribua setores e papéis aos usuários do sistema
+              Atribua papéis aos usuários do sistema
               {isSuperAdmin && (
                 <span className="block text-destructive mt-1">
                   Você é o Super Admin e pode excluir contas de usuários.
@@ -256,13 +210,11 @@ export default function Settings() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Papel</TableHead>
-                    <TableHead>Setor</TableHead>
                     {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {usersWithRoles?.map((userProfile) => {
-                    const currentSector = getUserSector(userProfile.sector_id);
                     const isCurrentUser = userProfile.id === user?.id;
                     
                     return (
@@ -295,47 +247,6 @@ export default function Settings() {
                               <SelectItem value="member">
                                 <Badge className={ROLE_COLORS.member}>{ROLE_LABELS.member}</Badge>
                               </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={userProfile.sector_id || 'none'}
-                            onValueChange={(value) => updateSector.mutate({ 
-                              userId: userProfile.id, 
-                              sectorId: value === 'none' ? null : value 
-                            })}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue>
-                                {currentSector ? (
-                                  <div className="flex items-center gap-2">
-                                    <div 
-                                      className="w-3 h-3 rounded-full" 
-                                      style={{ backgroundColor: currentSector.color }} 
-                                    />
-                                    {currentSector.name}
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground">Sem setor</span>
-                                )}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">
-                                <span className="text-muted-foreground">Sem setor</span>
-                              </SelectItem>
-                              {sectors?.map((sector) => (
-                                <SelectItem key={sector.id} value={sector.id}>
-                                  <div className="flex items-center gap-2">
-                                    <div 
-                                      className="w-3 h-3 rounded-full" 
-                                      style={{ backgroundColor: sector.color }} 
-                                    />
-                                    {sector.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
                             </SelectContent>
                           </Select>
                         </TableCell>
