@@ -94,17 +94,17 @@ export const PRIORITY_OPTIONS: { value: TaskPriority; label: string; description
 ];
 
 export const STATUS_COLORS: Record<TaskStatus, string> = {
-  open: 'bg-info text-info-foreground',
-  in_progress: 'bg-warning text-warning-foreground',
-  done: 'bg-success text-success-foreground',
-  cancelled: 'bg-muted text-muted-foreground',
+  open: 'bg-info/15 text-info border border-info/30',
+  in_progress: 'bg-warning/15 text-warning border border-warning/30',
+  done: 'bg-success/15 text-success border border-success/30',
+  cancelled: 'bg-muted text-muted-foreground border border-muted-foreground/20',
 };
 
 export const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  low: 'bg-muted text-muted-foreground',
-  medium: 'bg-muted text-muted-foreground',
-  high: 'bg-destructive text-destructive-foreground',
-  urgent: 'bg-destructive text-destructive-foreground',
+  low: 'bg-muted text-muted-foreground border border-muted-foreground/20',
+  medium: 'bg-muted text-muted-foreground border border-muted-foreground/20',
+  high: 'bg-destructive/15 text-destructive border border-destructive/30',
+  urgent: 'bg-destructive/15 text-destructive border border-destructive/30',
 };
 
 // Regras de prazo
