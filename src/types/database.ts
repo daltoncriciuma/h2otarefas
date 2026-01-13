@@ -12,7 +12,13 @@ export interface Sector {
 export interface Profile {
   id: string;
   full_name: string | null;
-  sector_id: string | null;
+  created_at: string;
+}
+
+export interface UserSector {
+  id: string;
+  user_id: string;
+  sector_id: string;
   created_at: string;
 }
 

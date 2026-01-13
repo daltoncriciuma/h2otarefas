@@ -19,29 +19,18 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
-          sector_id: string | null
         }
         Insert: {
           created_at?: string
           full_name?: string | null
           id: string
-          sector_id?: string | null
         }
         Update: {
           created_at?: string
           full_name?: string | null
           id?: string
-          sector_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_sector_id_fkey"
-            columns: ["sector_id"]
-            isOneToOne: false
-            referencedRelation: "sectors"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       sectors: {
         Row: {
@@ -214,6 +203,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_sectors: {
+        Row: {
+          created_at: string
+          id: string
+          sector_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sector_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sector_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sectors_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
