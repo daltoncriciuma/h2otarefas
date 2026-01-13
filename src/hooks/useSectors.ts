@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Sector } from '@/types/database';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '@/lib/errorUtils';
 
 export function useSectors() {
   return useQuery({
@@ -37,7 +38,7 @@ export function useCreateSector() {
       toast.success('Setor criado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao criar setor: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Sector Create'));
     },
   });
 }
@@ -62,7 +63,7 @@ export function useUpdateSector() {
       toast.success('Setor atualizado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar setor: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Sector Update'));
     },
   });
 }
@@ -84,7 +85,7 @@ export function useDeleteSector() {
       toast.success('Setor excluído com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir setor: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Sector Delete'));
     },
   });
 }

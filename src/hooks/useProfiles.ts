@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/types/database';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '@/lib/errorUtils';
 
 export function useProfiles(sectorId?: string) {
   return useQuery({
@@ -43,7 +44,7 @@ export function useUpdateProfile() {
       toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar perfil: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Profile Update'));
     },
   });
 }
