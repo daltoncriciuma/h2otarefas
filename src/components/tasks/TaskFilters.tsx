@@ -140,17 +140,31 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="overdue"
-            checked={filters.overdue || false}
-            onCheckedChange={(checked) =>
-              onFiltersChange({ ...filters, overdue: checked ? true : undefined })
-            }
-          />
-          <Label htmlFor="overdue" className="text-sm cursor-pointer">
-            Apenas atrasadas
-          </Label>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="overdue"
+              checked={filters.overdue || false}
+              onCheckedChange={(checked) =>
+                onFiltersChange({ ...filters, overdue: checked ? true : undefined })
+              }
+            />
+            <Label htmlFor="overdue" className="text-sm cursor-pointer">
+              Apenas atrasadas
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="in_progress"
+              checked={filters.status === 'in_progress'}
+              onCheckedChange={(checked) =>
+                onFiltersChange({ ...filters, status: checked ? 'in_progress' : undefined })
+              }
+            />
+            <Label htmlFor="in_progress" className="text-sm cursor-pointer">
+              Executando
+            </Label>
+          </div>
         </div>
 
         {hasFilters && (
