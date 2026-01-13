@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSectors } from '@/hooks/useSectors';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useTask, useCreateTask, useUpdateTask } from '@/hooks/useTasks';
@@ -37,8 +35,7 @@ const taskSchema = z.object({
   sector_id: z.string().min(1, 'Setor é obrigatório'),
   assignee_id: z.string().optional(),
   status: z.enum(['backlog', 'in_progress', 'blocked', 'done']),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  due_at: z.string().optional(),
+  priority: z.enum(['medium', 'urgent']),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -50,12 +47,7 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: 'done', label: 'Concluída' },
 ];
 
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
-  { value: 'low', label: 'Baixa' },
-  { value: 'medium', label: 'Média' },
-  { value: 'high', label: 'Alta' },
-  { value: 'urgent', label: 'Urgente' },
-];
+import { PRIORITY_OPTIONS } from '@/types/database';
 
 export default function TaskForm() {
   const { id } = useParams<{ id: string }>();
@@ -68,8 +60,6 @@ export default function TaskForm() {
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
 
-  const [showUrgentWarning, setShowUrgentWarning] = useState(false);
-
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -79,32 +69,24 @@ export default function TaskForm() {
       assignee_id: '',
       status: 'backlog',
       priority: 'medium',
-      due_at: '',
     },
   });
 
   // Preencher o formulário quando editando
   useEffect(() => {
     if (isEditing && task) {
+      // Mapear prioridades antigas para as novas
+      const mappedPriority = (task.priority === 'low' || task.priority === 'medium') ? 'medium' : 'urgent';
       form.reset({
         title: task.title,
         description: task.description || '',
         sector_id: task.sector_id,
         assignee_id: task.assignee_id || '',
         status: task.status,
-        priority: task.priority,
-        due_at: task.due_at ? task.due_at.slice(0, 16) : '',
+        priority: mappedPriority,
       });
     }
   }, [task, isEditing, form]);
-
-  // Monitorar mudança de prioridade para mostrar aviso
-  const watchPriority = form.watch('priority');
-  const watchDueAt = form.watch('due_at');
-
-  useEffect(() => {
-    setShowUrgentWarning(watchPriority === 'urgent' && !watchDueAt);
-  }, [watchPriority, watchDueAt]);
 
   const onSubmit = async (data: TaskFormValues) => {
     try {
@@ -115,7 +97,6 @@ export default function TaskForm() {
         assignee_id: data.assignee_id === 'none' ? undefined : data.assignee_id || undefined,
         status: data.status,
         priority: data.priority,
-        due_at: data.due_at ? new Date(data.due_at).toISOString() : undefined,
       };
 
       if (isEditing && id) {
@@ -149,14 +130,6 @@ export default function TaskForm() {
           </div>
         </div>
 
-        {showUrgentWarning && (
-          <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="text-amber-700 dark:text-amber-400">
-              Tarefas urgentes sem prazo definido terão prazo automático de 72 horas.
-            </AlertDescription>
-          </Alert>
-        )}
 
         <Card>
           <CardHeader>
@@ -312,7 +285,10 @@ export default function TaskForm() {
                           <SelectContent>
                             {PRIORITY_OPTIONS.map((option) => (
                               <SelectItem key={option.value} value={option.value}>
-                                {option.label}
+                                <div className="flex flex-col">
+                                  <span>{option.label}</span>
+                                  <span className="text-xs text-muted-foreground">{option.description}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -323,24 +299,6 @@ export default function TaskForm() {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="due_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Prazo
-                        <span className="text-muted-foreground text-xs ml-2">
-                          (deixe em branco para prazo padrão de 20 dias)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <div className="flex gap-3 justify-end">
                   <Button

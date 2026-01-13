@@ -72,11 +72,17 @@ export const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  low: 'Baixa',
-  medium: 'Média',
+  low: 'Padrão',
+  medium: 'Padrão',
   high: 'Alta',
-  urgent: 'Urgente',
+  urgent: 'Alta',
 };
+
+// Opções simplificadas de prioridade para UI
+export const PRIORITY_OPTIONS: { value: TaskPriority; label: string; description: string }[] = [
+  { value: 'medium', label: 'Padrão', description: '20 dias para entrega' },
+  { value: 'urgent', label: 'Alta', description: '72 horas para entrega' },
+];
 
 export const STATUS_COLORS: Record<TaskStatus, string> = {
   backlog: 'bg-muted text-muted-foreground',
@@ -87,8 +93,8 @@ export const STATUS_COLORS: Record<TaskStatus, string> = {
 
 export const PRIORITY_COLORS: Record<TaskPriority, string> = {
   low: 'bg-muted text-muted-foreground',
-  medium: 'bg-info text-info-foreground',
-  high: 'bg-warning text-warning-foreground',
+  medium: 'bg-muted text-muted-foreground',
+  high: 'bg-destructive text-destructive-foreground',
   urgent: 'bg-destructive text-destructive-foreground',
 };
 
