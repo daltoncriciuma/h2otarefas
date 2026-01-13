@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useSectors } from '@/hooks/useSectors';
@@ -24,7 +34,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Shield, Building2 } from 'lucide-react';
+import { Users, Shield, Building2, Trash2 } from 'lucide-react';
 
 type AppRole = 'admin' | 'manager' | 'member';
 
@@ -40,22 +50,39 @@ const ROLE_COLORS: Record<AppRole, string> = {
   member: 'bg-muted text-muted-foreground border border-border',
 };
 
+// Super admin email - only this user can delete accounts
+const SUPER_ADMIN_EMAIL = 'daltoncriciuma@gmail.com';
+
 export default function Settings() {
-  const { isAdmin, isLoading: authLoading } = useAuth();
+  const { isAdmin, isLoading: authLoading, user } = useAuth();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
   const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch user roles
-  const { data: userRoles, isLoading: rolesLoading } = useQuery({
-    queryKey: ['user-roles'],
+  const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
+
+  // Fetch user roles with emails
+  const { data: usersWithRoles, isLoading: rolesLoading } = useQuery({
+    queryKey: ['users-with-roles'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
+      if (profilesError) throw profilesError;
+
+      // Get roles
+      const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
-      if (error) throw error;
-      return data;
+      if (rolesError) throw rolesError;
+
+      // Combine data
+      return profilesData.map(profile => ({
+        ...profile,
+        role: rolesData.find(r => r.user_id === profile.id)?.role as AppRole || 'member',
+      }));
     },
     enabled: !authLoading && isAdmin,
   });
@@ -70,6 +97,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({
         title: 'Setor atualizado',
@@ -95,6 +123,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       toast({
         title: 'Papel atualizado',
@@ -110,10 +139,32 @@ export default function Settings() {
     },
   });
 
-  const getUserRole = (userId: string): AppRole => {
-    const userRole = userRoles?.find(r => r.user_id === userId);
-    return userRole?.role as AppRole || 'member';
-  };
+  // Delete user mutation
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast({
+        title: 'Usuário excluído',
+        description: 'A conta do usuário foi excluída permanentemente.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error.message || 'Não foi possível excluir o usuário.',
+      });
+    },
+  });
 
   const getUserSector = (sectorId: string | null) => {
     if (!sectorId) return null;
@@ -159,7 +210,7 @@ export default function Settings() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{profiles?.length || 0}</div>
+              <div className="text-2xl font-bold">{usersWithRoles?.length || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -169,7 +220,7 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {userRoles?.filter(r => r.role === 'admin').length || 0}
+                {usersWithRoles?.filter(u => u.role === 'admin').length || 0}
               </div>
             </CardContent>
           </Card>
@@ -189,6 +240,11 @@ export default function Settings() {
             <CardTitle>Gerenciar Usuários</CardTitle>
             <CardDescription>
               Atribua setores e papéis aos usuários do sistema
+              {isSuperAdmin && (
+                <span className="block text-destructive mt-1">
+                  Você é o Super Admin e pode excluir contas de usuários.
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -201,27 +257,31 @@ export default function Settings() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Papel</TableHead>
                     <TableHead>Setor</TableHead>
+                    {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {profiles?.map((profile) => {
-                    const currentRole = getUserRole(profile.id);
-                    const currentSector = getUserSector(profile.sector_id);
+                  {usersWithRoles?.map((userProfile) => {
+                    const currentSector = getUserSector(userProfile.sector_id);
+                    const isCurrentUser = userProfile.id === user?.id;
                     
                     return (
-                      <TableRow key={profile.id}>
+                      <TableRow key={userProfile.id}>
                         <TableCell>
-                          <div className="font-medium">{profile.full_name || 'Sem nome'}</div>
+                          <div className="font-medium">{userProfile.full_name || 'Sem nome'}</div>
+                          {isCurrentUser && (
+                            <span className="text-xs text-primary">(você)</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Select
-                            value={currentRole}
-                            onValueChange={(value) => updateRole.mutate({ userId: profile.id, role: value as AppRole })}
+                            value={userProfile.role}
+                            onValueChange={(value) => updateRole.mutate({ userId: userProfile.id, role: value as AppRole })}
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue>
-                                <Badge className={ROLE_COLORS[currentRole]}>
-                                  {ROLE_LABELS[currentRole]}
+                                <Badge className={ROLE_COLORS[userProfile.role]}>
+                                  {ROLE_LABELS[userProfile.role]}
                                 </Badge>
                               </SelectValue>
                             </SelectTrigger>
@@ -240,9 +300,9 @@ export default function Settings() {
                         </TableCell>
                         <TableCell>
                           <Select
-                            value={profile.sector_id || 'none'}
+                            value={userProfile.sector_id || 'none'}
                             onValueChange={(value) => updateSector.mutate({ 
-                              userId: profile.id, 
+                              userId: userProfile.id, 
                               sectorId: value === 'none' ? null : value 
                             })}
                           >
@@ -279,6 +339,42 @@ export default function Settings() {
                             </SelectContent>
                           </Select>
                         </TableCell>
+                        {isSuperAdmin && (
+                          <TableCell>
+                            {!isCurrentUser && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta ação é <strong>irreversível</strong>. O usuário{' '}
+                                      <strong>{userProfile.full_name}</strong> será permanentemente
+                                      excluído do sistema, incluindo todos os seus dados.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={() => deleteUser.mutate(userProfile.id)}
+                                    >
+                                      Excluir permanentemente
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
