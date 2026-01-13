@@ -30,6 +30,7 @@ export interface UserRole {
 
 export interface Task {
   id: string;
+  task_number: number | null;
   title: string;
   description: string | null;
   possible_solution: string | null;

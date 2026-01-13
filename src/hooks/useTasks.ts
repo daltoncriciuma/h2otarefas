@@ -51,7 +51,14 @@ export function useTasks(filters?: TaskFilters) {
         const sanitizedSearch = filters.search
           .slice(0, 100) // Limit length
           .replace(/[%_\\]/g, '\\$&'); // Escape special LIKE characters
-        query = query.ilike('title', `%${sanitizedSearch}%`);
+        
+        // Check if search is a number to search by task_number
+        const searchNumber = parseInt(sanitizedSearch, 10);
+        if (!isNaN(searchNumber)) {
+          query = query.or(`title.ilike.%${sanitizedSearch}%,task_number.eq.${searchNumber}`);
+        } else {
+          query = query.ilike('title', `%${sanitizedSearch}%`);
+        }
       }
 
       const { data, error } = await query;
