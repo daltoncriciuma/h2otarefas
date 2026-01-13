@@ -41,7 +41,7 @@ const ROLE_COLORS: Record<AppRole, string> = {
 };
 
 export default function Settings() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
   const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { toast } = useToast();
@@ -57,6 +57,7 @@ export default function Settings() {
       if (error) throw error;
       return data;
     },
+    enabled: !authLoading && isAdmin,
   });
 
   // Update sector mutation
@@ -119,7 +120,15 @@ export default function Settings() {
     return sectors?.find(s => s.id === sectorId);
   };
 
-  const isLoading = profilesLoading || sectorsLoading || rolesLoading;
+  const isLoading = authLoading || profilesLoading || sectorsLoading || rolesLoading;
+
+  if (authLoading) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12 text-muted-foreground">Carregando...</div>
+      </AppLayout>
+    );
+  }
 
   if (!isAdmin) {
     return (
