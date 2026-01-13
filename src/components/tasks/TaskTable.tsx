@@ -167,7 +167,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.status === 'open' && (
+                  {task.status === 'open' ? (
                     <Button
                       size="sm"
                       className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -176,7 +176,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                       <Play className="h-4 w-4 mr-1" />
                       Executar
                     </Button>
-                  )}
+                  ) : task.status === 'in_progress' ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
+                      Executando
+                    </span>
+                  ) : null}
                 </TableCell>
               </TableRow>
             ))}
