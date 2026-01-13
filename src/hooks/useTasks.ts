@@ -23,7 +23,9 @@ export function useTasks(filters?: TaskFilters) {
         .from('tasks')
         .select(`
           *,
-          sector:sectors(*)
+          sector:sectors(*),
+          assignee:profiles!tasks_assignee_id_fkey(*),
+          creator:profiles!tasks_created_by_fkey(*)
         `)
         .order('due_at', { ascending: true, nullsFirst: false })
         .order('priority', { ascending: false });
@@ -78,7 +80,9 @@ export function useTask(id: string) {
         .from('tasks')
         .select(`
           *,
-          sector:sectors(*)
+          sector:sectors(*),
+          assignee:profiles!tasks_assignee_id_fkey(*),
+          creator:profiles!tasks_created_by_fkey(*)
         `)
         .eq('id', id)
         .single();
