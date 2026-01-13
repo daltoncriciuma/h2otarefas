@@ -1,5 +1,5 @@
 export type AppRole = 'admin' | 'manager' | 'member';
-export type TaskStatus = 'backlog' | 'in_progress' | 'blocked' | 'done';
+export type TaskStatus = 'open' | 'in_progress' | 'done' | 'cancelled';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Sector {
@@ -66,17 +66,18 @@ export interface TaskHistory {
 
 // Constantes para labels
 export const STATUS_LABELS: Record<TaskStatus, string> = {
-  backlog: 'Aberto', // Legacy mapping
-  in_progress: 'Aberto',
-  blocked: 'Bloqueada',
+  open: 'Aberto',
+  in_progress: 'Em Progresso',
   done: 'Concluída',
+  cancelled: 'Cancelada',
 };
 
-// Opções de status para UI (sem backlog)
-export const STATUS_OPTIONS: { value: Exclude<TaskStatus, 'backlog'>; label: string }[] = [
-  { value: 'in_progress', label: 'Aberto' },
-  { value: 'blocked', label: 'Bloqueada' },
+// Opções de status para UI
+export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
+  { value: 'open', label: 'Aberto' },
+  { value: 'in_progress', label: 'Em Progresso' },
   { value: 'done', label: 'Concluída' },
+  { value: 'cancelled', label: 'Cancelada' },
 ];
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
@@ -93,10 +94,10 @@ export const PRIORITY_OPTIONS: { value: TaskPriority; label: string; description
 ];
 
 export const STATUS_COLORS: Record<TaskStatus, string> = {
-  backlog: 'bg-muted text-muted-foreground',
-  in_progress: 'bg-info text-info-foreground',
-  blocked: 'bg-destructive text-destructive-foreground',
+  open: 'bg-info text-info-foreground',
+  in_progress: 'bg-warning text-warning-foreground',
   done: 'bg-success text-success-foreground',
+  cancelled: 'bg-muted text-muted-foreground',
 };
 
 export const PRIORITY_COLORS: Record<TaskPriority, string> = {

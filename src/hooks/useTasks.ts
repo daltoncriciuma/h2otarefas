@@ -61,7 +61,7 @@ export function useTasks(filters?: TaskFilters) {
       if (filters?.overdue) {
         const now = new Date().toISOString();
         tasks = tasks.filter(
-          (task) => task.due_at && task.due_at < now && task.status !== 'done'
+          (task) => task.due_at && task.due_at < now && task.status !== 'done' && task.status !== 'cancelled'
         );
       }
 
