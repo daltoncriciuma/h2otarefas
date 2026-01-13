@@ -112,7 +112,7 @@ export default function TaskForm() {
         title: data.title,
         description: data.description || undefined,
         sector_id: data.sector_id,
-        assignee_id: data.assignee_id || undefined,
+        assignee_id: data.assignee_id === 'none' ? undefined : data.assignee_id || undefined,
         status: data.status,
         priority: data.priority,
         due_at: data.due_at ? new Date(data.due_at).toISOString() : undefined,
@@ -251,7 +251,7 @@ export default function TaskForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Sem responsável</SelectItem>
+                            <SelectItem value="none">Sem responsável</SelectItem>
                             {profiles?.map((profile) => (
                               <SelectItem key={profile.id} value={profile.id}>
                                 {profile.full_name || 'Usuário sem nome'}
