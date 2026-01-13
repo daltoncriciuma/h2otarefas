@@ -1,0 +1,97 @@
+export type AppRole = 'admin' | 'manager' | 'member';
+export type TaskStatus = 'backlog' | 'in_progress' | 'blocked' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Sector {
+  id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  sector_id: string | null;
+  created_at: string;
+}
+
+export interface UserRole {
+  id: string;
+  user_id: string;
+  role: AppRole;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  sector_id: string;
+  assignee_id: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface TaskWithRelations extends Task {
+  sector?: Sector;
+  assignee?: Profile;
+  creator?: Profile;
+}
+
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  author_id: string | null;
+  content: string;
+  created_at: string;
+  author?: Profile;
+}
+
+export interface TaskHistory {
+  id: string;
+  task_id: string;
+  actor_id: string | null;
+  action: string;
+  from_value: Record<string, unknown> | null;
+  to_value: Record<string, unknown> | null;
+  created_at: string;
+  actor?: Profile;
+}
+
+// Constantes para labels
+export const STATUS_LABELS: Record<TaskStatus, string> = {
+  backlog: 'Backlog',
+  in_progress: 'Em Andamento',
+  blocked: 'Bloqueada',
+  done: 'Concluída',
+};
+
+export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  low: 'Baixa',
+  medium: 'Média',
+  high: 'Alta',
+  urgent: 'Urgente',
+};
+
+export const STATUS_COLORS: Record<TaskStatus, string> = {
+  backlog: 'bg-muted text-muted-foreground',
+  in_progress: 'bg-info text-info-foreground',
+  blocked: 'bg-destructive text-destructive-foreground',
+  done: 'bg-success text-success-foreground',
+};
+
+export const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  low: 'bg-muted text-muted-foreground',
+  medium: 'bg-info text-info-foreground',
+  high: 'bg-warning text-warning-foreground',
+  urgent: 'bg-destructive text-destructive-foreground',
+};
+
+// Regras de prazo
+export const URGENT_DEADLINE_HOURS = 72;
+export const DEFAULT_DEADLINE_DAYS = 20;
