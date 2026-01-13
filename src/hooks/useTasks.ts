@@ -74,6 +74,27 @@ export function useTasks(filters?: TaskFilters) {
         );
       }
 
+      // Ordenar por status: Aberto > Executando > Concluída > Cancelada
+      const statusOrder: Record<string, number> = {
+        'open': 1,
+        'in_progress': 2,
+        'done': 3,
+        'cancelled': 4,
+      };
+
+      tasks.sort((a, b) => {
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        
+        // Dentro do mesmo status, ordenar por prazo (mais próximo primeiro)
+        if (a.due_at && b.due_at) {
+          return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
+        }
+        if (a.due_at) return -1;
+        if (b.due_at) return 1;
+        return 0;
+      });
+
       return tasks;
     },
   });
