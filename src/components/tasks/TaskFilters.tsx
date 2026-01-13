@@ -146,7 +146,11 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
               id="overdue"
               checked={filters.overdue || false}
               onCheckedChange={(checked) =>
-                onFiltersChange({ ...filters, overdue: checked ? true : undefined })
+                onFiltersChange({ 
+                  ...filters, 
+                  overdue: checked ? true : undefined,
+                  status: checked ? undefined : filters.status 
+                })
               }
             />
             <Label htmlFor="overdue" className="text-sm cursor-pointer">
@@ -158,7 +162,11 @@ export function TaskFilters({ filters, onFiltersChange }: TaskFiltersProps) {
               id="in_progress"
               checked={filters.status === 'in_progress'}
               onCheckedChange={(checked) =>
-                onFiltersChange({ ...filters, status: checked ? 'in_progress' : undefined })
+                onFiltersChange({ 
+                  ...filters, 
+                  status: checked ? 'in_progress' : undefined,
+                  overdue: checked ? undefined : filters.overdue 
+                })
               }
             />
             <Label htmlFor="in_progress" className="text-sm cursor-pointer">
