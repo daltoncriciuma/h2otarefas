@@ -4,6 +4,7 @@ import type { Task, TaskWithRelations, TaskStatus, TaskPriority, URGENT_DEADLINE
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { addHours, addDays } from 'date-fns';
+import { getSafeErrorMessage } from '@/lib/errorUtils';
 
 interface TaskFilters {
   sectorId?: string;
@@ -130,7 +131,7 @@ export function useCreateTask() {
       toast.success('Tarefa criada com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao criar tarefa: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Task Create'));
     },
   });
 }
@@ -206,7 +207,7 @@ export function useUpdateTask() {
       toast.success('Tarefa atualizada com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar tarefa: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Task Update'));
     },
   });
 }
@@ -224,7 +225,7 @@ export function useDeleteTask() {
       toast.success('Tarefa excluída com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir tarefa: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Task Delete'));
     },
   });
 }

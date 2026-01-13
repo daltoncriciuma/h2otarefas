@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { getSafeAuthErrorMessage } from '@/lib/errorUtils';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -57,7 +58,7 @@ export default function Auth() {
     setSuccess(null);
     const { error } = await signIn(values.email, values.password);
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'Credenciais inválidas' : error.message);
+      setError(getSafeAuthErrorMessage(error));
     } else {
       navigate('/dashboard');
     }
@@ -70,7 +71,7 @@ export default function Auth() {
     setSuccess(null);
     const { error } = await signUp(values.email, values.password, values.fullName);
     if (error) {
-      setError(error.message.includes('already registered') ? 'Email já cadastrado' : error.message);
+      setError(getSafeAuthErrorMessage(error));
     } else {
       navigate('/dashboard');
     }

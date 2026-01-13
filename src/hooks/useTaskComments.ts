@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { TaskComment } from '@/types/database';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSafeErrorMessage } from '@/lib/errorUtils';
 
 export function useTaskComments(taskId: string) {
   return useQuery({
@@ -45,7 +46,7 @@ export function useCreateComment() {
       toast.success('Comentário adicionado!');
     },
     onError: (error) => {
-      toast.error(`Erro ao adicionar comentário: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Comment Create'));
     },
   });
 }
@@ -68,7 +69,7 @@ export function useDeleteComment() {
       toast.success('Comentário excluído!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir comentário: ${error.message}`);
+      toast.error(getSafeErrorMessage(error, 'Comment Delete'));
     },
   });
 }
