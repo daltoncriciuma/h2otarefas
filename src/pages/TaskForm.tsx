@@ -35,16 +35,17 @@ const taskSchema = z.object({
   possible_solution: z.string().optional(),
   sector_id: z.string().min(1, 'Setor é obrigatório'),
   assignee_id: z.string().optional(),
-  status: z.enum(['in_progress', 'blocked', 'done']),
+  status: z.enum(['open', 'in_progress', 'done', 'cancelled']),
   priority: z.enum(['medium', 'urgent']),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'in_progress', label: 'Aberto' },
-  { value: 'blocked', label: 'Bloqueada' },
+  { value: 'open', label: 'Aberto' },
+  { value: 'in_progress', label: 'Em Progresso' },
   { value: 'done', label: 'Concluída' },
+  { value: 'cancelled', label: 'Cancelada' },
 ];
 
 import { PRIORITY_OPTIONS } from '@/types/database';
@@ -68,7 +69,7 @@ export default function TaskForm() {
       possible_solution: '',
       sector_id: '',
       assignee_id: '',
-      status: 'in_progress',
+      status: 'open',
       priority: 'medium',
     },
   });
@@ -78,15 +79,13 @@ export default function TaskForm() {
     if (isEditing && task) {
       // Mapear prioridades antigas para as novas
       const mappedPriority = (task.priority === 'low' || task.priority === 'medium') ? 'medium' : 'urgent';
-      // Mapear status backlog para in_progress
-      const mappedStatus = task.status === 'backlog' ? 'in_progress' : task.status;
       form.reset({
         title: task.title,
         description: task.description || '',
         possible_solution: (task as any).possible_solution || '',
         sector_id: task.sector_id,
         assignee_id: task.assignee_id || '',
-        status: mappedStatus,
+        status: task.status,
         priority: mappedPriority,
       });
     }

@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { STATUS_LABELS, PRIORITY_LABELS } from '@/types/database';
 
 const STATUS_CHART_COLORS = {
-  backlog: '#94a3b8',
-  in_progress: '#0ea5e9',
-  blocked: '#ef4444',
+  open: '#0ea5e9',
+  in_progress: '#f59e0b',
   done: '#22c55e',
+  cancelled: '#94a3b8',
 };
 
 const PRIORITY_CHART_COLORS = {
@@ -29,10 +29,11 @@ export default function Dashboard() {
   const [chartType, setChartType] = useState<'status' | 'priority'>('status');
 
   const total = tasks?.length || 0;
+  const open = tasks?.filter((t) => t.status === 'open').length || 0;
   const inProgress = tasks?.filter((t) => t.status === 'in_progress').length || 0;
-  const blocked = tasks?.filter((t) => t.status === 'blocked').length || 0;
   const done = tasks?.filter((t) => t.status === 'done').length || 0;
-  const overdue = tasks?.filter((t) => t.due_at && isPast(new Date(t.due_at)) && t.status !== 'done').length || 0;
+  const cancelled = tasks?.filter((t) => t.status === 'cancelled').length || 0;
+  const overdue = tasks?.filter((t) => t.due_at && isPast(new Date(t.due_at)) && t.status !== 'done' && t.status !== 'cancelled').length || 0;
 
   const statusData = Object.entries(STATUS_LABELS).map(([key, label]) => ({
     name: label,
@@ -65,7 +66,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold">Dashboard</h1>
 
         {/* KPIs */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -75,10 +76,17 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
-              <Clock className="h-4 w-4 text-info" />
+              <CardTitle className="text-sm font-medium">Aberto</CardTitle>
+              <Layers className="h-4 w-4 text-info" />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold text-info">{inProgress}</div></CardContent>
+            <CardContent><div className="text-2xl font-bold text-info">{open}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Em Progresso</CardTitle>
+              <Clock className="h-4 w-4 text-warning" />
+            </CardHeader>
+            <CardContent><div className="text-2xl font-bold text-warning">{inProgress}</div></CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -96,10 +104,10 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Bloqueadas</CardTitle>
-              <AlertOctagon className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+              <AlertOctagon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold text-destructive">{blocked}</div></CardContent>
+            <CardContent><div className="text-2xl font-bold text-muted-foreground">{cancelled}</div></CardContent>
           </Card>
         </div>
 
