@@ -45,7 +45,11 @@ export function useTasks(filters?: TaskFilters) {
       }
 
       if (filters?.search) {
-        query = query.ilike('title', `%${filters.search}%`);
+        // Sanitize pattern characters to prevent pattern injection attacks
+        const sanitizedSearch = filters.search
+          .slice(0, 100) // Limit length
+          .replace(/[%_\\]/g, '\\$&'); // Escape special LIKE characters
+        query = query.ilike('title', `%${sanitizedSearch}%`);
       }
 
       const { data, error } = await query;
