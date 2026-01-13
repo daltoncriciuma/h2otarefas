@@ -27,12 +27,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Shield, Trash2 } from 'lucide-react';
+import { Users, Shield, Trash2, ChevronDown } from 'lucide-react';
+import { useSectors } from '@/hooks/useSectors';
+import { useAllUserSectors, useUpdateUserSectors } from '@/hooks/useProfiles';
 
 type AppRole = 'admin' | 'manager' | 'member';
 
@@ -55,6 +63,9 @@ export default function Settings() {
   const { isAdmin, isLoading: authLoading, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: sectors } = useSectors();
+  const { data: allUserSectors } = useAllUserSectors();
+  const updateUserSectors = useUpdateUserSectors();
 
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
@@ -134,6 +145,25 @@ export default function Settings() {
     },
   });
 
+  // Get sectors for a specific user
+  const getUserSectors = (userId: string) => {
+    return allUserSectors?.filter(us => us.user_id === userId).map(us => us.sector_id) || [];
+  };
+
+  // Handle sector toggle
+  const handleSectorToggle = (userId: string, sectorId: string, checked: boolean) => {
+    const currentSectors = getUserSectors(userId);
+    let newSectors: string[];
+    
+    if (checked) {
+      newSectors = [...currentSectors, sectorId];
+    } else {
+      newSectors = currentSectors.filter(id => id !== sectorId);
+    }
+    
+    updateUserSectors.mutate({ userId, sectorIds: newSectors });
+  };
+
   const isLoading = authLoading || usersLoading;
 
   if (authLoading) {
@@ -193,7 +223,7 @@ export default function Settings() {
           <CardHeader>
             <CardTitle>Gerenciar Usuários</CardTitle>
             <CardDescription>
-              Atribua papéis aos usuários do sistema
+              Atribua papéis e setores de responsabilidade aos usuários
               {isSuperAdmin && (
                 <span className="block text-destructive mt-1">
                   Você é o Super Admin e pode excluir contas de usuários.
@@ -210,12 +240,17 @@ export default function Settings() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Papel</TableHead>
+                    <TableHead>Setores Responsável</TableHead>
                     {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {usersWithRoles?.map((userProfile) => {
                     const isCurrentUser = userProfile.id === user?.id;
+                    const userSectorIds = getUserSectors(userProfile.id);
+                    const userSectorNames = sectors
+                      ?.filter(s => userSectorIds.includes(s.id))
+                      .map(s => s.name) || [];
                     
                     return (
                       <TableRow key={userProfile.id}>
@@ -249,6 +284,51 @@ export default function Settings() {
                               </SelectItem>
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="min-w-[180px] justify-between">
+                                {userSectorNames.length > 0 
+                                  ? userSectorNames.length === 1 
+                                    ? userSectorNames[0]
+                                    : `${userSectorNames.length} setores`
+                                  : 'Selecionar setores'
+                                }
+                                <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2" align="start">
+                              <div className="space-y-2">
+                                {sectors?.map((sector) => (
+                                  <div key={sector.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`${userProfile.id}-${sector.id}`}
+                                      checked={userSectorIds.includes(sector.id)}
+                                      onCheckedChange={(checked) => 
+                                        handleSectorToggle(userProfile.id, sector.id, checked as boolean)
+                                      }
+                                    />
+                                    <label
+                                      htmlFor={`${userProfile.id}-${sector.id}`}
+                                      className="flex items-center gap-2 text-sm cursor-pointer flex-1"
+                                    >
+                                      <div
+                                        className="w-3 h-3 rounded-full"
+                                        style={{ backgroundColor: sector.color }}
+                                      />
+                                      {sector.name}
+                                    </label>
+                                  </div>
+                                ))}
+                                {(!sectors || sectors.length === 0) && (
+                                  <p className="text-sm text-muted-foreground text-center py-2">
+                                    Nenhum setor cadastrado
+                                  </p>
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </TableCell>
                         {isSuperAdmin && (
                           <TableCell>
