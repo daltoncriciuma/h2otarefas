@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ArrowLeft, CalendarIcon, Play } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Select,
   SelectContent,
@@ -23,11 +26,25 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSectors } from '@/hooks/useSectors';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useTask, useCreateTask, useUpdateTask } from '@/hooks/useTasks';
-import { TaskStatus, TaskPriority } from '@/types/database';
+import { TaskStatus, TaskPriority, PRIORITY_OPTIONS, STATUS_OPTIONS } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -41,19 +58,13 @@ const taskSchema = z.object({
 
 type TaskFormValues = z.infer<typeof taskSchema>;
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'open', label: 'Aberto' },
-  { value: 'in_progress', label: 'Em Progresso' },
-  { value: 'done', label: 'Concluída' },
-  { value: 'cancelled', label: 'Cancelada' },
-];
-
-import { PRIORITY_OPTIONS } from '@/types/database';
-
 export default function TaskForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
+
+  const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
+  const [executeDueDate, setExecuteDueDate] = useState<Date | undefined>(undefined);
 
   const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
@@ -114,8 +125,26 @@ export default function TaskForm() {
     }
   };
 
+  const handleExecuteTask = async () => {
+    if (!id || !executeDueDate) return;
+    
+    try {
+      await updateTask.mutateAsync({
+        id,
+        status: 'in_progress',
+        due_at: executeDueDate.toISOString(),
+      });
+      setExecuteDialogOpen(false);
+      setExecuteDueDate(undefined);
+      navigate('/tasks');
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
   const isLoading = sectorsLoading || profilesLoading || (isEditing && taskLoading);
   const isPending = createTask.isPending || updateTask.isPending;
+  const canExecute = isEditing && task?.status === 'open';
 
   return (
     <AppLayout>
@@ -326,6 +355,16 @@ export default function TaskForm() {
 
 
                 <div className="flex gap-3 justify-end">
+                  {canExecute && (
+                    <Button
+                      type="button"
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => setExecuteDialogOpen(true)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Executar
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
@@ -341,6 +380,64 @@ export default function TaskForm() {
             </Form>
           </CardContent>
         </Card>
+
+        {/* Dialog para Executar Tarefa */}
+        <Dialog open={executeDialogOpen} onOpenChange={setExecuteDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Executar Tarefa</DialogTitle>
+              <DialogDescription>
+                Selecione a data prevista para conclusão desta tarefa.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !executeDueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {executeDueDate ? format(executeDueDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={executeDueDate}
+                    onSelect={setExecuteDueDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setExecuteDialogOpen(false);
+                  setExecuteDueDate(undefined);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={handleExecuteTask}
+                disabled={!executeDueDate || updateTask.isPending}
+              >
+                {updateTask.isPending ? 'Salvando...' : 'Confirmar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
