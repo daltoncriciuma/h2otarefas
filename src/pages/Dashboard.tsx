@@ -3,9 +3,10 @@ import { useSectors } from '@/hooks/useSectors';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { CheckCircle2, Clock, AlertTriangle, Layers, AlertOctagon } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, Layers, AlertOctagon, Plus } from 'lucide-react';
 import { isPast } from 'date-fns';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { STATUS_LABELS, PRIORITY_LABELS } from '@/types/database';
 
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const { data: tasks } = useTasks();
   const { data: sectors } = useSectors();
   const [chartType, setChartType] = useState<'status' | 'priority'>('status');
+  const navigate = useNavigate();
 
   const total = tasks?.length || 0;
   const open = tasks?.filter((t) => t.status === 'open').length || 0;
@@ -63,7 +65,13 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <Button onClick={() => navigate('/tasks/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Tarefa
+          </Button>
+        </div>
 
         {/* KPIs */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
