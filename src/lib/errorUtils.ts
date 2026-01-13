@@ -14,8 +14,10 @@ interface SupabaseError {
  * Logs the full error for debugging while showing generic messages to users.
  */
 export function getSafeErrorMessage(error: SupabaseError | Error | unknown, context?: string): string {
-  // Log the full error for debugging (server-side visibility only)
-  console.error(`[${context || 'Error'}]:`, error);
+  // Log the full error only in development (prevents info leakage in production)
+  if (import.meta.env.DEV) {
+    console.error(`[${context || 'Error'}]:`, error);
+  }
 
   // Type guard for Supabase errors
   const supaError = error as SupabaseError;
@@ -61,7 +63,10 @@ export function getSafeErrorMessage(error: SupabaseError | Error | unknown, cont
  * Maps authentication errors to user-friendly messages.
  */
 export function getSafeAuthErrorMessage(error: SupabaseError | Error | unknown): string {
-  console.error('[Auth Error]:', error);
+  // Log the full error only in development (prevents info leakage in production)
+  if (import.meta.env.DEV) {
+    console.error('[Auth Error]:', error);
+  }
 
   const supaError = error as SupabaseError;
   const message = supaError?.message?.toLowerCase() || '';
