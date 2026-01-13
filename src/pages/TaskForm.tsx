@@ -171,6 +171,7 @@ export default function TaskForm() {
   const isPending = createTask.isPending || updateTask.isPending;
   const canExecute = isEditing && task?.status === 'open';
   const canComplete = isEditing && task?.status === 'in_progress';
+  const canEditStatusManually = user?.email === 'daltoncriciuma@gmail.com';
 
   return (
     <AppLayout>
@@ -328,6 +329,7 @@ export default function TaskForm() {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
+                          disabled={!canEditStatusManually && isEditing}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -342,6 +344,11 @@ export default function TaskForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {!canEditStatusManually && isEditing && (
+                          <p className="text-xs text-muted-foreground">
+                            Use os botões Executar/Concluir para alterar o status
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
