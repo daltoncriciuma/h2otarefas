@@ -66,15 +66,15 @@ export interface TaskHistory {
 
 // Constantes para labels
 export const STATUS_LABELS: Record<TaskStatus, string> = {
-  backlog: 'Em Progresso', // Legacy mapping
-  in_progress: 'Em Progresso',
+  backlog: 'Aberto', // Legacy mapping
+  in_progress: 'Aberto',
   blocked: 'Bloqueada',
   done: 'Concluída',
 };
 
 // Opções de status para UI (sem backlog)
 export const STATUS_OPTIONS: { value: Exclude<TaskStatus, 'backlog'>; label: string }[] = [
-  { value: 'in_progress', label: 'Em Progresso' },
+  { value: 'in_progress', label: 'Aberto' },
   { value: 'blocked', label: 'Bloqueada' },
   { value: 'done', label: 'Concluída' },
 ];
