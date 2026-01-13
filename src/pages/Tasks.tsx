@@ -18,7 +18,7 @@ interface Filters {
 }
 
 export default function Tasks() {
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<Filters>({ status: 'open' });
   const { data: tasks, isLoading } = useTasks(filters);
   const navigate = useNavigate();
 
