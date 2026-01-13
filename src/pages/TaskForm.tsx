@@ -42,7 +42,7 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'in_progress', label: 'Em Progresso' },
+  { value: 'in_progress', label: 'Aberto' },
   { value: 'blocked', label: 'Bloqueada' },
   { value: 'done', label: 'Concluída' },
 ];
