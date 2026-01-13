@@ -155,6 +155,8 @@ interface UpdateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   due_at?: string | null;
+  completed_by?: string | null;
+  completion_notes?: string | null;
 }
 
 export function useUpdateTask() {

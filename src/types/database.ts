@@ -42,6 +42,8 @@ export interface Task {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  completed_by: string | null;
+  completion_notes: string | null;
 }
 
 export interface TaskWithRelations extends Task {
