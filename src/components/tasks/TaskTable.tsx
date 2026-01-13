@@ -26,6 +26,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
 import { SectorBadge } from './SectorBadge';
@@ -33,6 +40,7 @@ import { OverdueBadge } from './OverdueBadge';
 import { TaskWithRelations } from '@/types/database';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUpdateTask } from '@/hooks/useTasks';
+import { useProfiles } from '@/hooks/useProfiles';
 import { cn } from '@/lib/utils';
 
 interface TaskTableProps {
@@ -43,8 +51,10 @@ interface TaskTableProps {
 export function TaskTable({ tasks, isLoading }: TaskTableProps) {
   const navigate = useNavigate();
   const updateTask = useUpdateTask();
+  const { data: profiles } = useProfiles();
   const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
   const [executeDueDate, setExecuteDueDate] = useState<Date>();
+  const [executeAssigneeId, setExecuteAssigneeId] = useState<string>('');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const isOverdue = (task: TaskWithRelations) => {
@@ -55,21 +65,24 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
     e.stopPropagation();
     setSelectedTaskId(taskId);
     setExecuteDueDate(undefined);
+    setExecuteAssigneeId('');
     setExecuteDialogOpen(true);
   };
 
   const handleExecuteTask = async () => {
-    if (!selectedTaskId || !executeDueDate) return;
+    if (!selectedTaskId || !executeDueDate || !executeAssigneeId) return;
     
     await updateTask.mutateAsync({
       id: selectedTaskId,
       status: 'in_progress',
       due_at: executeDueDate.toISOString(),
+      assignee_id: executeAssigneeId,
     });
     
     setExecuteDialogOpen(false);
     setSelectedTaskId(null);
     setExecuteDueDate(undefined);
+    setExecuteAssigneeId('');
   };
 
   if (isLoading) {
@@ -211,38 +224,62 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
           <DialogHeader>
             <DialogTitle>Executar Tarefa</DialogTitle>
             <DialogDescription>
-              Selecione a data prevista para conclusão da tarefa.
+              Selecione o responsável e a data prevista para conclusão.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !executeDueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {executeDueDate ? (
-                    format(executeDueDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                  ) : (
-                    "Selecione uma data"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={executeDueDate}
-                  onSelect={setExecuteDueDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="py-4 space-y-4">
+            {/* Responsável */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Responsável *</label>
+              <Select
+                value={executeAssigneeId}
+                onValueChange={setExecuteAssigneeId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profiles?.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.full_name || 'Usuário sem nome'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Data de Conclusão */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Data prevista para conclusão *</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !executeDueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {executeDueDate ? (
+                      format(executeDueDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                    ) : (
+                      "Selecione uma data"
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={executeDueDate}
+                    onSelect={setExecuteDueDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           <DialogFooter>
@@ -252,7 +289,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
             <Button 
               className="bg-orange-500 hover:bg-orange-600"
               onClick={handleExecuteTask}
-              disabled={!executeDueDate || updateTask.isPending}
+              disabled={!executeDueDate || !executeAssigneeId || updateTask.isPending}
             >
               Confirmar
             </Button>
