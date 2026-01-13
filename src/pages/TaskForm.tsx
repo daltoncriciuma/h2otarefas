@@ -67,6 +67,7 @@ export default function TaskForm() {
 
   const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
   const [executeDueDate, setExecuteDueDate] = useState<Date | undefined>(undefined);
+  const [executeAssigneeId, setExecuteAssigneeId] = useState<string>('');
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completionNotes, setCompletionNotes] = useState('');
 
@@ -130,16 +131,18 @@ export default function TaskForm() {
   };
 
   const handleExecuteTask = async () => {
-    if (!id || !executeDueDate) return;
+    if (!id || !executeDueDate || !executeAssigneeId) return;
     
     try {
       await updateTask.mutateAsync({
         id,
         status: 'in_progress',
         due_at: executeDueDate.toISOString(),
+        assignee_id: executeAssigneeId,
       });
       setExecuteDialogOpen(false);
       setExecuteDueDate(undefined);
+      setExecuteAssigneeId('');
       navigate('/tasks');
     } catch (error) {
       // Error handled by mutation
@@ -428,34 +431,58 @@ export default function TaskForm() {
             <DialogHeader>
               <DialogTitle>Executar Tarefa</DialogTitle>
               <DialogDescription>
-                Selecione a data prevista para conclusão desta tarefa.
+                Selecione o responsável e a data prevista para conclusão.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !executeDueDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {executeDueDate ? format(executeDueDate, "PPP", { locale: ptBR }) : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={executeDueDate}
-                    onSelect={setExecuteDueDate}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="py-4 space-y-4">
+              {/* Responsável */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Responsável *</label>
+                <Select
+                  value={executeAssigneeId}
+                  onValueChange={setExecuteAssigneeId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles?.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.full_name || 'Usuário sem nome'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Data de Conclusão */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data prevista para conclusão *</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !executeDueDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {executeDueDate ? format(executeDueDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={executeDueDate}
+                      onSelect={setExecuteDueDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -464,6 +491,7 @@ export default function TaskForm() {
                 onClick={() => {
                   setExecuteDialogOpen(false);
                   setExecuteDueDate(undefined);
+                  setExecuteAssigneeId('');
                 }}
               >
                 Cancelar
@@ -472,7 +500,7 @@ export default function TaskForm() {
                 type="button"
                 className="bg-orange-500 hover:bg-orange-600 text-white"
                 onClick={handleExecuteTask}
-                disabled={!executeDueDate || updateTask.isPending}
+                disabled={!executeDueDate || !executeAssigneeId || updateTask.isPending}
               >
                 {updateTask.isPending ? 'Salvando...' : 'Confirmar'}
               </Button>
