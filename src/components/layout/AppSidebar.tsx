@@ -26,7 +26,7 @@ function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; 
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-sidebar to-sidebar/95 text-sidebar-foreground">
-      <div className={cn("p-6 flex items-center", collapsed ? "justify-center" : "")}>
+      <div className={cn("p-4 flex items-center", collapsed ? "justify-center" : "")}>
         <img 
           src={logoH2o} 
           alt="H2O Laboratório" 
@@ -37,7 +37,7 @@ function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; 
         />
       </div>
 
-      <nav className="flex-1 px-3 space-y-1">
+      <nav className="flex-1 px-2 space-y-0.5">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -46,59 +46,60 @@ function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; 
               to={item.href}
               onClick={onClose}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-                collapsed && 'justify-center px-3',
+                'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-200',
+                collapsed && 'justify-center px-2',
                 isActive
                   ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-ios'
                   : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
               )}
               title={collapsed ? item.name : undefined}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
+              <item.icon className="h-4 w-4 flex-shrink-0" />
               {!collapsed && item.name}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className={cn("p-4 border-t border-sidebar-border/50", collapsed && "px-2")}>
+      <div className={cn("p-3 border-t border-sidebar-border/50", collapsed && "px-1.5")}>
         {!collapsed ? (
           <>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sidebar-accent/30">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground font-semibold shadow-ios">
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sidebar-accent/30">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-xs font-semibold shadow-ios">
                 {profile?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-sidebar-foreground">
+                <p className="text-xs font-semibold truncate text-sidebar-foreground">
                   {profile?.full_name || 'Usuário'}
                 </p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">
+                <p className="text-[10px] text-sidebar-foreground/60 truncate">
                   {user?.email}
                 </p>
               </div>
             </div>
             <Button
               variant="ghost"
-              className="w-full mt-3 justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 rounded-xl"
+              size="sm"
+              className="w-full mt-2 justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 rounded-lg text-xs"
               onClick={signOut}
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-3.5 w-3.5 mr-1.5" />
               Sair
             </Button>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground font-semibold shadow-ios">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-xs font-semibold shadow-ios">
               {profile?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 rounded-xl"
+              className="h-7 w-7 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 rounded-lg"
               onClick={signOut}
               title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
@@ -154,7 +155,7 @@ export function AppSidebar() {
       <aside 
         className={cn(
           "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 transition-all duration-300",
-          desktopCollapsed ? "lg:w-20" : "lg:w-72"
+          desktopCollapsed ? "lg:w-16" : "lg:w-60"
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
