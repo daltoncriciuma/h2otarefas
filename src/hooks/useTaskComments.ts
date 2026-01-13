@@ -51,6 +51,31 @@ export function useCreateComment() {
   });
 }
 
+export function useUpdateComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, taskId, content }: { id: string; taskId: string; content: string }) => {
+      const { data, error } = await supabase
+        .from('task_comments')
+        .update({ content })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, taskId };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['task-comments', result.taskId] });
+      toast.success('Comentário atualizado!');
+    },
+    onError: (error) => {
+      toast.error(getSafeErrorMessage(error, 'Comment Update'));
+    },
+  });
+}
+
 export function useDeleteComment() {
   const queryClient = useQueryClient();
 
