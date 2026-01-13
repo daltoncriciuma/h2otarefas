@@ -36,11 +36,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Setor</TableHead>
-              <TableHead>Criado por</TableHead>
               <TableHead>Responsável</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Prioridade</TableHead>
               <TableHead>Prazo</TableHead>
+              <TableHead>Criado por</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -49,10 +49,10 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -78,11 +78,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
           <TableRow>
             <TableHead className="w-[250px]">Título</TableHead>
             <TableHead>Setor</TableHead>
-            <TableHead>Criado por</TableHead>
             <TableHead>Responsável</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Prioridade</TableHead>
             <TableHead>Prazo</TableHead>
+            <TableHead>Criado por</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -101,11 +101,6 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
               </TableCell>
               <TableCell>
                 <span className="text-sm text-muted-foreground">
-                  {task.creator?.full_name || '-'}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm text-muted-foreground">
                   {task.assignee?.full_name || '-'}
                 </span>
               </TableCell>
@@ -121,6 +116,11 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
                     {format(new Date(task.due_at), "dd 'de' MMM, yyyy", { locale: ptBR })}
                   </span>
                 )}
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {task.creator?.full_name || '-'}
+                </span>
               </TableCell>
               <TableCell>
                 {isOverdue(task) && <OverdueBadge />}
