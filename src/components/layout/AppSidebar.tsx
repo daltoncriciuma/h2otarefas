@@ -16,7 +16,6 @@ import { useState } from 'react';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
-  { name: 'Setores', href: '/sectors', icon: Building2 },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
