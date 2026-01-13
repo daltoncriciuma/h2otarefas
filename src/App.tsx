@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import TaskForm from "./pages/TaskForm";
+import Sectors from "./pages/Sectors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ function AppRoutes() {
       <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
       <Route path="/tasks/new" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
       <Route path="/tasks/:id/edit" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
+      <Route path="/sectors" element={<ProtectedRoute><Sectors /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
