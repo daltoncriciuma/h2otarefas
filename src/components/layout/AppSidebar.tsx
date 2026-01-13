@@ -17,6 +17,7 @@ import logoH2o from '@/assets/logo-h2o.webp';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
+  { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
 function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; collapsed?: boolean }) {
