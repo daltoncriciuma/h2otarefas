@@ -73,7 +73,7 @@ export interface TaskHistory {
 // Constantes para labels
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   open: 'Aberto',
-  in_progress: 'Em Progresso',
+  in_progress: 'Executando',
   done: 'Concluída',
   cancelled: 'Cancelada',
 };
@@ -81,7 +81,7 @@ export const STATUS_LABELS: Record<TaskStatus, string> = {
 // Opções de status para UI
 export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: 'open', label: 'Aberto' },
-  { value: 'in_progress', label: 'Em Progresso' },
+  { value: 'in_progress', label: 'Executando' },
   { value: 'done', label: 'Concluída' },
   { value: 'cancelled', label: 'Cancelada' },
 ];
