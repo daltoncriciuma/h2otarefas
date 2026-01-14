@@ -28,23 +28,30 @@ export function useTaskAttachments(taskId: string) {
 
       if (error) throw error;
       
-      // Convert storage paths to public URLs
-      const attachmentsWithUrls = (data as TaskAttachment[]).map(attachment => {
-        // Check if file_path is already a full URL (for backwards compatibility)
-        if (attachment.file_path.startsWith('http')) {
-          return attachment;
-        }
-        // Generate public URL from storage path
-        const { data: urlData } = supabase.storage
-          .from('task-attachments')
-          .getPublicUrl(attachment.file_path);
-        
-        return {
-          ...attachment,
-          file_path: urlData.publicUrl,
-          storage_path: attachment.file_path, // Keep original storage path
-        };
-      });
+      // Convert storage paths to signed URLs (bucket is private)
+      const attachmentsWithUrls = await Promise.all(
+        (data as TaskAttachment[]).map(async (attachment) => {
+          // Check if file_path is already a full URL (for backwards compatibility)
+          if (attachment.file_path.startsWith('http')) {
+            return attachment;
+          }
+          // Generate signed URL from storage path (1 hour expiry)
+          const { data: urlData, error: urlError } = await supabase.storage
+            .from('task-attachments')
+            .createSignedUrl(attachment.file_path, 3600);
+          
+          if (urlError || !urlData?.signedUrl) {
+            console.error('Failed to create signed URL:', urlError);
+            return attachment;
+          }
+          
+          return {
+            ...attachment,
+            file_path: urlData.signedUrl,
+            storage_path: attachment.file_path, // Keep original storage path
+          };
+        })
+      );
       
       return attachmentsWithUrls;
     },
@@ -83,13 +90,8 @@ export function useUploadTaskAttachment() {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('task-attachments')
-        .getPublicUrl(storagePath);
-
       // Insert record in task_attachments table
-      // Store the storage path in file_path for Drive upload, and use publicUrl for display
+      // Store the storage path in file_path for Drive upload
       const { data, error: insertError } = await supabase
         .from('task_attachments')
         .insert({
@@ -106,10 +108,23 @@ export function useUploadTaskAttachment() {
 
       if (insertError) throw insertError;
 
-      // Return data with public URL for display
+      // Get signed URL for display (bucket is private)
+      const { data: urlData, error: urlError } = await supabase.storage
+        .from('task-attachments')
+        .createSignedUrl(storagePath, 3600);
+
+      if (urlError || !urlData?.signedUrl) {
+        console.error('Failed to create signed URL:', urlError);
+        return {
+          ...data,
+          public_url: storagePath,
+        };
+      }
+
+      // Return data with signed URL for display
       return {
         ...data,
-        public_url: urlData.publicUrl,
+        public_url: urlData.signedUrl,
       };
     },
     onSuccess: (_, variables) => {
