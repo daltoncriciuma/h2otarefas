@@ -48,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskAttachments } from '@/components/tasks/TaskAttachments';
 import { CompletionAttachments } from '@/components/tasks/CompletionAttachments';
+import { useDriveUpload } from '@/hooks/useDriveUpload';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -72,7 +73,9 @@ export default function TaskForm() {
   const [executeAssigneeId, setExecuteAssigneeId] = useState<string>('');
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completionNotes, setCompletionNotes] = useState('');
-
+  const [completionAttachmentIds, setCompletionAttachmentIds] = useState<string[]>([]);
+  
+  const driveUpload = useDriveUpload();
   const { data: sectors, isLoading: sectorsLoading } = useSectors();
   const { data: profiles, isLoading: profilesLoading } = useProfiles();
   const { data: task, isLoading: taskLoading } = useTask(id || '');
@@ -161,8 +164,18 @@ export default function TaskForm() {
         completed_by: user.id,
         completion_notes: completionNotes.trim() || null,
       });
+      
+      // Upload fotos de conclusão para o Google Drive
+      if (completionAttachmentIds.length > 0) {
+        driveUpload.mutate({
+          attachmentIds: completionAttachmentIds,
+          taskNumber: task?.task_number,
+        });
+      }
+      
       setCompleteDialogOpen(false);
       setCompletionNotes('');
+      setCompletionAttachmentIds([]);
       navigate('/tasks');
     } catch (error) {
       // Error handled by mutation
@@ -437,6 +450,7 @@ export default function TaskForm() {
                       taskId={id} 
                       attachmentType="general"
                       title="Fotos da Tarefa"
+                      taskNumber={task?.task_number}
                     />
                     
                     {task?.status === 'done' && (
@@ -445,6 +459,7 @@ export default function TaskForm() {
                         attachmentType="completion"
                         readOnly
                         title="Fotos da Conclusão"
+                        taskNumber={task?.task_number}
                       />
                     )}
                   </div>
@@ -559,7 +574,10 @@ export default function TaskForm() {
               </div>
               
               {id && (
-                <CompletionAttachments taskId={id} />
+                <CompletionAttachments 
+                  taskId={id} 
+                  onAttachmentsChange={setCompletionAttachmentIds}
+                />
               )}
             </div>
             <DialogFooter>
@@ -569,6 +587,7 @@ export default function TaskForm() {
                 onClick={() => {
                   setCompleteDialogOpen(false);
                   setCompletionNotes('');
+                  setCompletionAttachmentIds([]);
                 }}
               >
                 Cancelar
