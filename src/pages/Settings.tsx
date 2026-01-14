@@ -246,16 +246,17 @@ export default function Settings() {
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Carregando...</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Papel</TableHead>
-                    <TableHead>Setores Responsável</TableHead>
-                    {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
-                  </TableRow>
-                </TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Nome</TableHead>
+                      <TableHead className="min-w-[200px]">E-mail</TableHead>
+                      <TableHead className="min-w-[130px]">Papel</TableHead>
+                      <TableHead className="min-w-[180px]">Setores Responsável</TableHead>
+                      {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {usersWithRoles?.map((userProfile) => {
                     const isCurrentUser = userProfile.id === user?.id;
@@ -388,6 +389,7 @@ export default function Settings() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>
