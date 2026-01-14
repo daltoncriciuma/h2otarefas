@@ -74,10 +74,10 @@ export function useTasks(filters?: TaskFilters) {
         );
       }
 
-      // Ordenar por status: Aberto > Executando > Concluída > Cancelada
+      // Ordenar por status: Executando > Aberto > Concluída > Cancelada
       const statusOrder: Record<string, number> = {
-        'open': 1,
-        'in_progress': 2,
+        'in_progress': 1,
+        'open': 2,
         'done': 3,
         'cancelled': 4,
       };
