@@ -95,7 +95,7 @@ async function getAccessToken(serviceAccountKey: ServiceAccountKey): Promise<str
   if (!tokenResponse.ok) {
     const errorText = await tokenResponse.text();
     console.error("Token exchange failed:", errorText);
-    throw new Error(`Failed to get access token: ${errorText}`);
+    throw new Error("AUTH_TOKEN_FAILED");
   }
 
   const tokenData = await tokenResponse.json();
@@ -143,7 +143,7 @@ async function uploadToDrive(accessToken: string, fileData: Uint8Array, fileName
   if (!uploadResponse.ok) {
     const errorText = await uploadResponse.text();
     console.error("Upload failed:", errorText);
-    throw new Error(`Failed to upload to Drive: ${errorText}`);
+    throw new Error("DRIVE_UPLOAD_FAILED");
   }
 
   return await uploadResponse.json();
@@ -274,8 +274,22 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in upload-to-drive function:', error);
+    
+    // Map internal errors to safe user messages
+    let clientMessage = 'Erro ao enviar para o Drive. Tente novamente.';
+    
+    if (errorMessage === 'GOOGLE_SERVICE_ACCOUNT_KEY not configured') {
+      clientMessage = 'Serviço temporariamente indisponível.';
+    } else if (errorMessage === 'No attachment IDs provided') {
+      clientMessage = 'Nenhum anexo fornecido.';
+    } else if (errorMessage === 'AUTH_TOKEN_FAILED') {
+      clientMessage = 'Erro de autenticação. Contate o administrador.';
+    } else if (errorMessage === 'DRIVE_UPLOAD_FAILED') {
+      clientMessage = 'Erro ao enviar arquivo. Verifique as permissões.';
+    }
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: clientMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
