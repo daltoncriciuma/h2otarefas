@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.send-task-notification]
 verify_jwt = false
+
+[functions.get-users-with-emails]
+verify_jwt = false
