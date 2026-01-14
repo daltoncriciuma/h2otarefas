@@ -7,6 +7,7 @@ interface TaskAttachment {
   task_id: string;
   file_name: string;
   file_path: string;
+  storage_path?: string;
   file_size: number | null;
   mime_type: string | null;
   uploaded_by: string | null;
@@ -25,7 +26,26 @@ export function useTaskAttachments(taskId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as TaskAttachment[];
+      
+      // Convert storage paths to public URLs
+      const attachmentsWithUrls = (data as TaskAttachment[]).map(attachment => {
+        // Check if file_path is already a full URL (for backwards compatibility)
+        if (attachment.file_path.startsWith('http')) {
+          return attachment;
+        }
+        // Generate public URL from storage path
+        const { data: urlData } = supabase.storage
+          .from('task-attachments')
+          .getPublicUrl(attachment.file_path);
+        
+        return {
+          ...attachment,
+          file_path: urlData.publicUrl,
+          storage_path: attachment.file_path, // Keep original storage path
+        };
+      });
+      
+      return attachmentsWithUrls;
     },
     enabled: !!taskId,
   });
@@ -48,12 +68,12 @@ export function useUploadTaskAttachment() {
     }) => {
       // Generate unique file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${taskId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const storagePath = `${taskId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('task-attachments')
-        .upload(fileName, file, {
+        .upload(storagePath, file, {
           cacheControl: '3600',
           upsert: false,
         });
@@ -63,15 +83,16 @@ export function useUploadTaskAttachment() {
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('task-attachments')
-        .getPublicUrl(fileName);
+        .getPublicUrl(storagePath);
 
       // Insert record in task_attachments table
+      // Store the storage path in file_path for Drive upload, and use publicUrl for display
       const { data, error: insertError } = await supabase
         .from('task_attachments')
         .insert({
           task_id: taskId,
           file_name: file.name,
-          file_path: urlData.publicUrl,
+          file_path: storagePath, // Store storage path instead of public URL
           file_size: file.size,
           mime_type: file.type,
           uploaded_by: userId,
@@ -82,7 +103,11 @@ export function useUploadTaskAttachment() {
 
       if (insertError) throw insertError;
 
-      return data;
+      // Return data with public URL for display
+      return {
+        ...data,
+        public_url: urlData.publicUrl,
+      };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['task-attachments', variables.taskId] });

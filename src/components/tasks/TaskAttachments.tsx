@@ -3,6 +3,7 @@ import { Camera, X, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTaskAttachments, useUploadTaskAttachment, useDeleteTaskAttachment } from '@/hooks/useTaskAttachments';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDriveUpload } from '@/hooks/useDriveUpload';
 import {
   Dialog,
   DialogContent,
@@ -14,13 +15,15 @@ interface TaskAttachmentsProps {
   attachmentType?: 'general' | 'completion';
   readOnly?: boolean;
   title?: string;
+  taskNumber?: number | null;
 }
 
 export function TaskAttachments({ 
   taskId, 
   attachmentType = 'general',
   readOnly = false,
-  title = 'Fotos'
+  title = 'Fotos',
+  taskNumber
 }: TaskAttachmentsProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +32,7 @@ export function TaskAttachments({
   const { data: attachments, isLoading } = useTaskAttachments(taskId);
   const uploadAttachment = useUploadTaskAttachment();
   const deleteAttachment = useDeleteTaskAttachment();
+  const driveUpload = useDriveUpload();
 
   const filteredAttachments = attachments?.filter(a => a.attachment_type === attachmentType) || [];
 
@@ -36,16 +40,30 @@ export function TaskAttachments({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const uploadedIds: string[] = [];
+    
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) {
         continue;
       }
       
-      await uploadAttachment.mutateAsync({
+      const result = await uploadAttachment.mutateAsync({
         taskId,
         file,
         attachmentType,
         userId: user?.id,
+      });
+      
+      if (result?.id) {
+        uploadedIds.push(result.id);
+      }
+    }
+
+    // Upload para Google Drive em background
+    if (uploadedIds.length > 0) {
+      driveUpload.mutate({
+        attachmentIds: uploadedIds,
+        taskNumber,
       });
     }
 

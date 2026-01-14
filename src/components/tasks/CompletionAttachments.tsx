@@ -42,7 +42,7 @@ export function CompletionAttachments({ taskId, onAttachmentsChange }: Completio
       if (result) {
         const newFile = {
           id: result.id,
-          file_path: result.file_path,
+          file_path: result.public_url || result.file_path,
           file_name: result.file_name,
         };
         setUploadedFiles(prev => {
