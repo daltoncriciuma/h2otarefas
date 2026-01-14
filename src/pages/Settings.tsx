@@ -69,6 +69,17 @@ export default function Settings() {
 
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
+  // Fetch user emails from edge function
+  const { data: emailMap } = useQuery({
+    queryKey: ['user-emails'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-users-with-emails');
+      if (error) throw error;
+      return data.emailMap as Record<string, string>;
+    },
+    enabled: !authLoading && isAdmin,
+  });
+
   // Fetch user roles
   const { data: usersWithRoles, isLoading: usersLoading } = useQuery({
     queryKey: ['users-with-roles'],
@@ -239,6 +250,7 @@ export default function Settings() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
                     <TableHead>Papel</TableHead>
                     <TableHead>Setores Responsável</TableHead>
                     {isSuperAdmin && <TableHead className="w-[80px]">Ações</TableHead>}
@@ -259,6 +271,11 @@ export default function Settings() {
                           {isCurrentUser && (
                             <span className="text-xs text-primary">(você)</span>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {emailMap?.[userProfile.id] || '-'}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Select
