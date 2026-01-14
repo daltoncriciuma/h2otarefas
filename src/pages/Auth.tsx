@@ -50,16 +50,50 @@ export default function Auth() {
 
   // Detectar se o usuário veio do link de recuperação de senha
   useEffect(() => {
+    // Verificar hash params (formato antigo)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
-    const accessToken = hashParams.get('access_token');
+    const hashType = hashParams.get('type');
+    const hashAccessToken = hashParams.get('access_token');
     
-    if (type === 'recovery' && accessToken) {
+    // Verificar query params (formato novo)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryType = urlParams.get('type');
+    const queryCode = urlParams.get('code');
+    const queryError = urlParams.get('error');
+    const queryErrorDescription = urlParams.get('error_description');
+    
+    // Se há erro na URL, mostrar
+    if (queryError) {
+      setError(queryErrorDescription || 'Erro ao processar link de recuperação');
+      return;
+    }
+
+    // Detectar recovery via hash
+    if (hashType === 'recovery' && hashAccessToken) {
+      console.log('Recovery detected via hash');
       setShowNewPasswordForm(true);
+    }
+    
+    // Detectar recovery via query params (PKCE flow)
+    if (queryType === 'recovery' && queryCode) {
+      console.log('Recovery detected via query params, exchanging code...');
+      // Trocar o código por sessão
+      supabase.auth.exchangeCodeForSession(queryCode).then(({ error }) => {
+        if (error) {
+          console.error('Error exchanging code:', error);
+          setError('Link de recuperação expirado ou inválido. Solicite um novo.');
+        } else {
+          console.log('Code exchanged successfully, showing password form');
+          setShowNewPasswordForm(true);
+          // Limpar a URL
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      });
     }
 
     // Também escutar eventos de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setShowNewPasswordForm(true);
       }
