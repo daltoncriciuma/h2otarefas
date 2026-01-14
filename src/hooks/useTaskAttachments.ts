@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { compressImage } from '@/lib/imageUtils';
 
 interface TaskAttachment {
   id: string;
@@ -66,14 +67,16 @@ export function useUploadTaskAttachment() {
       attachmentType?: 'general' | 'completion';
       userId?: string;
     }) => {
+      // Compress image before upload
+      const compressedFile = await compressImage(file, 800, 0.7);
+      
       // Generate unique file path
-      const fileExt = file.name.split('.').pop();
-      const storagePath = `${taskId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const storagePath = `${taskId}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
 
-      // Upload to storage
+      // Upload compressed image to storage
       const { error: uploadError } = await supabase.storage
         .from('task-attachments')
-        .upload(storagePath, file, {
+        .upload(storagePath, compressedFile, {
           cacheControl: '3600',
           upsert: false,
         });
