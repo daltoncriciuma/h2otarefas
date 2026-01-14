@@ -58,7 +58,7 @@ export function TaskTable({ tasks, isLoading }: TaskTableProps) {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const isOverdue = (task: TaskWithRelations) => {
-    return task.due_at && isPast(new Date(task.due_at)) && task.status !== 'done';
+    return task.due_at && isPast(new Date(task.due_at)) && task.status !== 'done' && task.status !== 'cancelled';
   };
 
   const handleOpenExecuteDialog = (e: React.MouseEvent, taskId: string) => {
