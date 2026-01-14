@@ -133,6 +133,20 @@ interface CreateTaskInput {
   due_at?: string;
 }
 
+// Helper function to send task notification email
+async function sendTaskNotification(taskId: string, assigneeId: string) {
+  try {
+    const { error } = await supabase.functions.invoke('send-task-notification', {
+      body: { taskId, assigneeId },
+    });
+    if (error) {
+      console.error('Error sending task notification:', error);
+    }
+  } catch (err) {
+    console.error('Failed to send task notification:', err);
+  }
+}
+
 export function useCreateTask() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -161,6 +175,12 @@ export function useCreateTask() {
         .single();
 
       if (error) throw error;
+
+      // Send notification if assignee is set
+      if (input.assignee_id) {
+        sendTaskNotification(data.id, input.assignee_id);
+      }
+
       return data as Task;
     },
     onSuccess: () => {
@@ -237,6 +257,15 @@ export function useUpdateTask() {
 
       if (historyEntries.length > 0) {
         await supabase.from('task_history').insert(historyEntries);
+      }
+
+      // Send notification if assignee changed to a new person
+      const assigneeChanged = updates.assignee_id !== undefined && 
+        updates.assignee_id !== null && 
+        updates.assignee_id !== currentTask?.assignee_id;
+      
+      if (assigneeChanged && updates.assignee_id) {
+        sendTaskNotification(id, updates.assignee_id);
       }
 
       return data as Task;
