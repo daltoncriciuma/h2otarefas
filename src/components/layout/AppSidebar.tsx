@@ -18,7 +18,7 @@ import logoH2o from '@/assets/logo-h2o.webp';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
-  { name: 'Organograma', href: '/organogram', icon: Network },
+  { name: 'Organograma', href: 'https://sunny-day-wave.lovable.app', icon: Network, external: true },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
@@ -42,6 +42,28 @@ function SidebarContent({ onClose, collapsed = false }: { onClose?: () => void; 
       <nav className="flex-1 px-2 space-y-0.5">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
+          
+          if (item.external) {
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className={cn(
+                  'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-200',
+                  collapsed && 'justify-center px-2',
+                  'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+                )}
+                title={collapsed ? item.name : undefined}
+              >
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+                {!collapsed && item.name}
+              </a>
+            );
+          }
+          
           return (
             <NavLink
               key={item.name}
