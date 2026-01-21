@@ -4,7 +4,7 @@ project_id = "ksakloqmgsumnvxveues"
 verify_jwt = true
 
 [functions.delete-user]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-task-notification]
 verify_jwt = false
