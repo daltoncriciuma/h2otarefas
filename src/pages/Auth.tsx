@@ -50,51 +50,81 @@ export default function Auth() {
 
   // Detectar se o usuário veio do link de recuperação de senha
   useEffect(() => {
-    // Verificar hash params (formato antigo)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const hashType = hashParams.get('type');
-    const hashAccessToken = hashParams.get('access_token');
-    
-    // Verificar query params (formato novo)
-    const urlParams = new URLSearchParams(window.location.search);
-    const queryType = urlParams.get('type');
-    const queryCode = urlParams.get('code');
-    const queryError = urlParams.get('error');
-    const queryErrorDescription = urlParams.get('error_description');
-    
-    // Se há erro na URL, mostrar
-    if (queryError) {
-      setError(queryErrorDescription || 'Erro ao processar link de recuperação');
-      return;
-    }
+    const detectRecovery = async () => {
+      // Verificar hash params (formato antigo)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const hashType = hashParams.get('type');
+      const hashAccessToken = hashParams.get('access_token');
+      
+      // Verificar query params (formato novo PKCE)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryType = urlParams.get('type');
+      const queryCode = urlParams.get('code');
+      const queryError = urlParams.get('error');
+      const queryErrorDescription = urlParams.get('error_description');
+      
+      // Se há erro na URL, mostrar
+      if (queryError) {
+        setError(queryErrorDescription || 'Erro ao processar link de recuperação');
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
 
-    // Detectar recovery via hash
-    if (hashType === 'recovery' && hashAccessToken) {
-      console.log('Recovery detected via hash');
-      setShowNewPasswordForm(true);
-    }
-    
-    // Detectar recovery via query params (PKCE flow)
-    if (queryType === 'recovery' && queryCode) {
-      console.log('Recovery detected via query params, exchanging code...');
-      // Trocar o código por sessão
-      supabase.auth.exchangeCodeForSession(queryCode).then(({ error }) => {
-        if (error) {
-          console.error('Error exchanging code:', error);
-          setError('Link de recuperação expirado ou inválido. Solicite um novo.');
-        } else {
-          console.log('Code exchanged successfully, showing password form');
-          setShowNewPasswordForm(true);
-          // Limpar a URL
-          window.history.replaceState(null, '', window.location.pathname);
+      // Detectar recovery via hash (formato antigo)
+      if (hashType === 'recovery' && hashAccessToken) {
+        console.log('Recovery detected via hash');
+        setShowNewPasswordForm(true);
+        return;
+      }
+      
+      // Detectar recovery via query params (PKCE flow)
+      if (queryType === 'recovery' && queryCode) {
+        console.log('Recovery detected via query params, exchanging code...');
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(queryCode);
+          if (error) {
+            console.error('Error exchanging code:', error);
+            setError('Link de recuperação expirado ou inválido. Solicite um novo.');
+          } else {
+            console.log('Code exchanged successfully, showing password form');
+            setShowNewPasswordForm(true);
+          }
+        } catch (err) {
+          console.error('Exception exchanging code:', err);
+          setError('Erro ao processar link de recuperação. Solicite um novo.');
         }
-      });
-    }
+        // Limpar a URL após processar
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
 
-    // Também escutar eventos de autenticação
+      // Verificar se há token na URL sem tipo (alguns fluxos de magic link)
+      if (queryCode && !queryType) {
+        console.log('Code detected without type, attempting exchange...');
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(queryCode);
+          if (!error) {
+            // Verificar se a sessão atual é de recovery
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              // Checar o evento que gerou a sessão
+              console.log('Session established after code exchange');
+            }
+          }
+        } catch (err) {
+          console.error('Exception during code exchange:', err);
+        }
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+
+    detectRecovery();
+
+    // Escutar eventos de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth event:', event);
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY event received');
         setShowNewPasswordForm(true);
       }
     });

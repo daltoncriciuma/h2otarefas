@@ -72,13 +72,74 @@ Deno.serve(async (req) => {
       );
     }
 
+    // First, delete related data that might not cascade
+    // Delete user_sectors
+    const { error: sectorsError } = await supabaseAdmin
+      .from('user_sectors')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (sectorsError) {
+      console.error("Error deleting user sectors:", sectorsError);
+    }
+
+    // Delete task_attachments uploaded by user
+    const { error: attachmentsError } = await supabaseAdmin
+      .from('task_attachments')
+      .delete()
+      .eq('uploaded_by', userId);
+    
+    if (attachmentsError) {
+      console.error("Error deleting user attachments:", attachmentsError);
+    }
+
+    // Delete task_comments by user
+    const { error: commentsError } = await supabaseAdmin
+      .from('task_comments')
+      .delete()
+      .eq('author_id', userId);
+    
+    if (commentsError) {
+      console.error("Error deleting user comments:", commentsError);
+    }
+
+    // Nullify tasks assigned to user (don't delete, just unassign)
+    const { error: assigneeError } = await supabaseAdmin
+      .from('tasks')
+      .update({ assignee_id: null })
+      .eq('assignee_id', userId);
+    
+    if (assigneeError) {
+      console.error("Error nullifying task assignees:", assigneeError);
+    }
+
+    // Nullify tasks created by user
+    const { error: createdByError } = await supabaseAdmin
+      .from('tasks')
+      .update({ created_by: null })
+      .eq('created_by', userId);
+    
+    if (createdByError) {
+      console.error("Error nullifying task creators:", createdByError);
+    }
+
+    // Nullify tasks completed by user
+    const { error: completedByError } = await supabaseAdmin
+      .from('tasks')
+      .update({ completed_by: null })
+      .eq('completed_by', userId);
+    
+    if (completedByError) {
+      console.error("Error nullifying task completers:", completedByError);
+    }
+
     // Delete user from auth (this will cascade to profiles and user_roles due to FK)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      console.error("Error deleting user:", deleteError);
+      console.error("Error deleting user from auth:", deleteError);
       return new Response(
-        JSON.stringify({ error: deleteError.message }),
+        JSON.stringify({ error: `Erro ao excluir usuário: ${deleteError.message}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
