@@ -33,19 +33,36 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Validate JWT using getClaims
+    // Validate JWT.
+    // NOTE: In Lovable Cloud we use verify_jwt=false (gateway verification may fail with ES256 tokens),
+    // so we must validate in-code.
     const token = authHeader.replace("Bearer ", "");
+
+    let callerId: string | null = null;
+
+    // Preferred: claims validation
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-    
-    if (claimsError || !claimsData?.claims) {
-      console.error("Claims error:", claimsError);
+    if (!claimsError && claimsData?.claims?.sub) {
+      callerId = claimsData.claims.sub;
+    } else {
+      // Fallback: explicit getUser(token) validation
+      const {
+        data: { user },
+        error: userError,
+      } = await supabaseClient.auth.getUser(token);
+
+      if (userError) console.error("getUser(token) error:", userError);
+      if (claimsError) console.error("getClaims error:", claimsError);
+
+      callerId = user?.id ?? null;
+    }
+
+    if (!callerId) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const callerId = claimsData.claims.sub;
 
     // Check if caller is admin
     const { data: callerRole } = await supabaseAdmin
