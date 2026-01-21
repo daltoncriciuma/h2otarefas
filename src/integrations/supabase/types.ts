@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      org_connections: {
+        Row: {
+          created_at: string
+          from_person_id: string
+          id: string
+          to_person_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_person_id: string
+          id?: string
+          to_person_id: string
+        }
+        Update: {
+          created_at?: string
+          from_person_id?: string
+          id?: string
+          to_person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_connections_from_person_id_fkey"
+            columns: ["from_person_id"]
+            isOneToOne: false
+            referencedRelation: "org_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_connections_to_person_id_fkey"
+            columns: ["to_person_id"]
+            isOneToOne: false
+            referencedRelation: "org_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_decorative_lines: {
+        Row: {
+          color: string
+          created_at: string
+          end_x: number
+          end_y: number
+          id: string
+          start_x: number
+          start_y: number
+          stroke_width: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          end_x: number
+          end_y: number
+          id?: string
+          start_x: number
+          start_y: number
+          stroke_width?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          end_x?: number
+          end_y?: number
+          id?: string
+          start_x?: number
+          start_y?: number
+          stroke_width?: number
+        }
+        Relationships: []
+      }
+      org_people: {
+        Row: {
+          avatar_url: string | null
+          card_size: string
+          created_at: string
+          fill_card: boolean
+          id: string
+          locked: boolean
+          name: string
+          position_x: number
+          position_y: number
+          role: string
+          sector: string
+          sector_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          card_size?: string
+          created_at?: string
+          fill_card?: boolean
+          id?: string
+          locked?: boolean
+          name: string
+          position_x?: number
+          position_y?: number
+          role: string
+          sector?: string
+          sector_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          card_size?: string
+          created_at?: string
+          fill_card?: boolean
+          id?: string
+          locked?: boolean
+          name?: string
+          position_x?: number
+          position_y?: number
+          role?: string
+          sector?: string
+          sector_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_people_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

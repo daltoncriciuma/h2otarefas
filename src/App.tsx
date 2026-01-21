@@ -10,6 +10,7 @@ import Tasks from "./pages/Tasks";
 import TaskForm from "./pages/TaskForm";
 import Sectors from "./pages/Sectors";
 import Settings from "./pages/Settings";
+import Organogram from "./pages/Organogram";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -55,6 +56,7 @@ function AppRoutes() {
       <Route path="/tasks/:id" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
       <Route path="/tasks/:id/edit" element={<ProtectedRoute><TaskForm /></ProtectedRoute>} />
       <Route path="/sectors" element={<ProtectedRoute><Sectors /></ProtectedRoute>} />
+      <Route path="/organogram" element={<ProtectedRoute><Organogram /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
