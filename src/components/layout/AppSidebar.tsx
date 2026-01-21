@@ -5,7 +5,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ import logoH2o from '@/assets/logo-h2o.webp';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
+  { name: 'Organograma', href: '/organogram', icon: Network },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
