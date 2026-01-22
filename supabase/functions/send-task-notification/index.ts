@@ -190,6 +190,19 @@ const handler = async (req: Request): Promise<Response> => {
     if (!emailResponse.ok) {
       const errorData = await emailResponse.text();
       console.error("Resend API error:", errorData);
+
+      // Resend in test mode / unverified domain returns 403 validation_error.
+      // We return 200 to avoid breaking the app flow; the caller can surface a friendly message.
+      if (emailResponse.status === 403) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Failed to send email: ${errorData}` }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+
       throw new Error(`Failed to send email: ${errorData}`);
     }
 
