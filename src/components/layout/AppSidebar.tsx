@@ -6,7 +6,8 @@ import {
   LogOut,
   Menu,
   ChevronLeft,
-  Network
+  Network,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
   { name: 'Organograma', href: 'https://sunny-day-wave.lovable.app', icon: Network, external: true },
+  { name: 'Sales Soul', href: 'https://sales-soul.lovable.app', icon: TrendingUp, external: true },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 
