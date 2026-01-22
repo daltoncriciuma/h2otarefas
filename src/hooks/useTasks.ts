@@ -259,13 +259,17 @@ export function useUpdateTask() {
         await supabase.from('task_history').insert(historyEntries);
       }
 
-      // Send notification if assignee changed to a new person
+      // Send notification to assignee when task is edited
       const assigneeChanged = updates.assignee_id !== undefined && 
         updates.assignee_id !== null && 
         updates.assignee_id !== currentTask?.assignee_id;
       
-      if (assigneeChanged && updates.assignee_id) {
-        sendTaskNotification(id, updates.assignee_id);
+      // Determine who should receive the notification
+      const currentAssignee = assigneeChanged ? updates.assignee_id : currentTask?.assignee_id;
+      
+      // Send notification if there's an assignee (either new or existing)
+      if (currentAssignee) {
+        sendTaskNotification(id, currentAssignee);
       }
 
       return data as Task;
